@@ -1,4 +1,5 @@
 #include "output.h"
+#define COUT_PHI
 using namespace std;
 
 ofstream fout_phi;
@@ -6,19 +7,26 @@ ofstream fout_log;
 ofstream fout_snap;
 char para[100];
 clock_t t_begin;
+int tot_step;
+double sum_phi = 0;
+int count_phi = 0;
 
-void output_ini(double eta, double epsilon, int seed, int Nstep)
+
+void output_ini(double eta, double epsilon, unsigned long long seed, int nStep)
 {
 	t_begin = clock();
 	time_t nowtime = time(NULL);
 	tm t;
+	tot_step = nStep;
 #ifdef _MSC_VER
 	localtime_s(&t, &nowtime);
 #else
 	localtime_r(&nowtime, &t);
 #endif
 
-	snprintf(para, 100, "%g_%g_%g_%d_%d_%d", eta, epsilon, Node::rho_0, int(Node::Lx), int(Node::Ly), seed);
+	char seed_str[30];
+	num_to_str(seed, seed_str);
+	snprintf(para, 100, "%g_%g_%g_%d_%d_%s", eta, epsilon, Node::rho_0, int(Node::Lx), int(Node::Ly), seed_str);
 	char buff_phi[100];
 	char buff_log[100];
 #ifdef _MSC_VER
@@ -47,9 +55,10 @@ void output_ini(double eta, double epsilon, int seed, int Nstep)
 	fout_log << "N = " << Node::N << endl;
 	fout_log << "nCell = " << Grid::mm << endl;
 	fout_log << "seed = " << seed << endl;
-	fout_log << "total step: " << Nstep << endl;
+	fout_log << "total step: " << nStep << endl;
 	fout_log << endl;
-	fout_log << "step\ttime" << endl;
+	fout_log << "step\th:m:s" << endl;
+
 }
 
 void output_phi(const Node * bird, int step)
@@ -64,16 +73,28 @@ void output_phi(const Node * bird, int step)
 	double phi = sqrt(svx*svx + svy*svy) / Node::N;
 	double theta = atan2(svy, svx);
 	fout_phi << fixed << std::setw(16) << setprecision(10) << step << "\t" << phi << "\t" << theta << endl;
+
+	if (step > 50000)
+	{
+		sum_phi += phi;
+		count_phi += 100;
+	}
 }
 
 void output_log(int step)
 {
 	clock_t t_now = clock();
-	double dt = double(t_now - t_begin) / CLOCKS_PER_SEC / 3600;
-	fout_log << step << "\t" << dt << endl;
-#ifdef _MSC_VER
-	cout << step << "\t" << dt << endl;
-#endif
+	int dt = (t_now - t_begin)/ CLOCKS_PER_SEC;
+	int hour = dt / 3600;
+	int min = (dt - hour * 3600) / 60;
+	int sec = dt - hour * 3600 - min * 60;
+	fout_log << step << "\t" << hour << ":" << min << ":" << sec << endl;
+	if (step == tot_step)
+	{
+		fout_log << "phi = " << sum_phi / tot_step << endl;
+		double speed = double(step) / dt * 3600;
+		fout_log << "simulation speed: " << int(speed) << " step per hour" << endl;
+	}
 }
 
 void output_snap(const Node * bird, int step)

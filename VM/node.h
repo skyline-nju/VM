@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include "rand.h"
 
 const double PI = 3.14159265358979;
@@ -21,7 +23,7 @@ struct Node
 
 	static Node *ini_rand(Ran *myran);
 	static Node *ini_move_left(Ran *myran);
-	static Node *ini_snap(double _eta, double _eps, double _rho0, double _Lx, double _Ly, int _seed, int _t);
+	static Node *ini_snap(double _eta, double _eps, double _rho0, double _Lx, double _Ly, unsigned long long _seed, int _t);
 
 	double x, y, vx, vx0, vy, vy0;
 	int cell_idx;
@@ -63,5 +65,20 @@ inline void Node::addV(Node *node)
 	node->vy += vy0;
 }
 
+template <class T>
+void str_to_num(const char *str, T &num)
+{
+	std::stringstream ss;
+	ss << str;
+	ss >> num;
+}
+
+template <class T>
+void num_to_str(const T &num, char * str)
+{
+	std::stringstream ss;
+	ss << num;
+	ss >> str;
+}
 #endif
 

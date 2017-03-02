@@ -15,26 +15,23 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="disorder.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="grid.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="node.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="rand.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="output.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="rand.h">
+    <ClInclude Include="run.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="disorder.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="grid.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -45,6 +42,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="output.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="run.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

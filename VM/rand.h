@@ -1,5 +1,7 @@
 #ifndef RAND_H
 #define RAND_H
+
+// Generate a random number
 struct Ran
 {
 	unsigned long long u, v, w;
@@ -25,6 +27,23 @@ struct Ran
 		return (unsigned int)int64();
 	}
 };
+
+// shuffle a list randomly
+template<class T>
+void shuffle(T *a, int n, Ran *myran)
+{
+	for (int i = n - 1; i >= 0; i--)
+	{
+		int j = int(myran->doub() * (i + 1));
+		if (j > i)
+			j = i;
+		else if (j < 0)
+			j = 0;
+		T tmp = a[i];
+		a[i] = a[j];
+		a[j] = tmp;
+	}
+}
 #endif
 
 
