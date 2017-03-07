@@ -6,6 +6,9 @@
 *.user
 *.userosscache
 *.sln.docstates
+VM/*.out
+VM/*.o
+.vscode
 
 snap/
 phi/
@@ -14,8 +17,7 @@ rhox/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-VM/*.out
-VM/*.o
+
 
 # Build results
 [Dd]ebug/
