@@ -12,6 +12,6 @@ void output_ini(double eta, double epsilon, unsigned long long seed, int nStep);
 
 void output(const Node *bird, int step);
 
-void mkdir(char *folder);
+void mkdir(const char *folder);
 
 #endif
