@@ -54,7 +54,7 @@ Node * Node::ini_rand(Ran * myran)
 		double theta = myran->doub() * 2 * PI;
 		bird[i].vx = bird[i].vx0 = cos(theta);
 		bird[i].vy = bird[i].vy0 = sin(theta);
-		bird[i].next = NULL;
+		bird[i].next = nullptr;
 	}
 	return bird;
 }
@@ -69,7 +69,7 @@ Node * Node::ini_move_left(Ran *myran)
 		bird[i].y = myran->doub() * Ly;
 		bird[i].vx = bird[i].vx0 = 1;
 		bird[i].vy = bird[i].vy0 = 0;
-		bird[i].next = NULL;
+		bird[i].next = nullptr;
 	}
 	return bird;
 }
@@ -127,7 +127,7 @@ Node * Node::ini_snap(double _eta, double _eps, double _rho_0, double _Lx, doubl
 			vy[i] = sin(theta);
 		}
 		delete[] buff;
-		buff = NULL;
+		buff = nullptr;
 	}
 
 	// initilaizing
@@ -147,7 +147,7 @@ Node * Node::ini_snap(double _eta, double _eps, double _rho_0, double _Lx, doubl
 				bird[j].y = y[i] + dy;
 				bird[j].vx = bird[j].vx0 = vx[i];
 				bird[j].vy = bird[j].vy0 = vy[i];
-				bird[j].next = NULL;
+				bird[j].next = nullptr;
 			}
 		}
 	}
@@ -155,7 +155,7 @@ Node * Node::ini_snap(double _eta, double _eps, double _rho_0, double _Lx, doubl
 	delete[] y;
 	delete[] vx;
 	delete[] vy;
-	x = y = vx = vy = NULL;
+	x = y = vx = vy = nullptr;
 	cout << "load snapshot successfully" << endl;
 	return bird;
 }

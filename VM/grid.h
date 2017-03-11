@@ -5,7 +5,7 @@
 
 struct Grid
 {
-	Grid() { head = NULL; }
+	Grid() { head = nullptr; }
 	void cell_cell();
 	void cell_cell(Grid*);
 	void cell_cell(Grid*, double, double);

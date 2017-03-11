@@ -114,7 +114,7 @@ void output_snap(const Node *bird, int step)
     fout_snap.write((char *)&buff[0], sizeof(float) * Node::N * 3);
     fout_snap.close();
     delete[] buff;
-    buff = NULL;
+    buff = nullptr;
 }
 
 void output(const Node *bird, int step)

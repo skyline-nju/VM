@@ -40,7 +40,7 @@ inline Node::Node()
 {
 	x = y = vx = vx0 = vy = vy0;
 	cell_idx = 0;
-	next = NULL;
+	next = nullptr;
 }
 
 inline double Node::rr(Node *node)

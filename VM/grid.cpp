@@ -13,7 +13,7 @@ Grid * Grid::ini()
 	Grid *cell = new Grid[mm];
 	for (int i = 0; i < mm; i++)
 	{
-		cell[i].head = NULL;
+		cell[i].head = nullptr;
 	}
 	return cell;
 }
@@ -159,7 +159,7 @@ void Grid::refresh(Grid *cell, Node *node)
 {
 	for (int i = 0; i < mm; i++)
 	{
-		cell[i].head = NULL;
+		cell[i].head = nullptr;
 	}
 	Grid::link_nodes(cell, node);
 }

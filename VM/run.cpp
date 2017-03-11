@@ -5,10 +5,10 @@ double eta;
 double epsilon;
 int nStep;
 unsigned long long seed;
-Ran *myran = NULL;
-double *disorder = NULL;
-Node *bird = NULL;
-Grid *cell = NULL;
+Ran *myran = nullptr;
+double *disorder = nullptr;
+Node *bird = nullptr;
+Grid *cell = nullptr;
 
 void ini_rand_torques(int n)
 {
@@ -114,7 +114,7 @@ void update_coor()
 		bird[i].move(noise[i]);
 	}
 	delete[] noise;
-	noise = NULL;
+	noise = nullptr;
 }
 
 void update()
