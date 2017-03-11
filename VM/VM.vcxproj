@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="comn.h" />
     <ClInclude Include="grid.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="output.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="run.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="comn.cpp" />
     <ClCompile Include="grid.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="node.cpp" />

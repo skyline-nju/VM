@@ -1,15 +1,8 @@
 #ifndef NODE_H
 #define NODE_H
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
 #include "rand.h"
+#include "comn.h"
 
-const double PI = 3.14159265358979;
 
 struct Node
 {
@@ -65,20 +58,5 @@ inline void Node::addV(Node *node)
 	node->vy += vy0;
 }
 
-template <class T>
-void str_to_num(const char *str, T &num)
-{
-	std::stringstream ss;
-	ss << str;
-	ss >> num;
-}
-
-template <class T>
-void num_to_str(const T &num, char * str)
-{
-	std::stringstream ss;
-	ss << num;
-	ss >> str;
-}
 #endif
 

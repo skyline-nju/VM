@@ -76,9 +76,9 @@ Node * Node::ini_move_left(Ran *myran)
 
 Node * Node::ini_snap(double _eta, double _eps, double _rho_0, double _Lx, double _Ly, unsigned long long _seed, int _t)
 {
-	// check the validity of size of input snapshot
 	int nrows;
 	int ncols;
+	// check the compatibility of size of input snapshot
 	if (int(Lx) % int(_Lx) == 0 && int(Ly) % int(_Ly) == 0 && rho_0 == _rho_0)
 	{
 		ncols = int(Lx) / int(_Lx);

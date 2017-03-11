@@ -30,6 +30,9 @@
     <ClInclude Include="run.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="comn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="grid.cpp">
@@ -45,6 +48,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="run.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="comn.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
