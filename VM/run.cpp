@@ -53,7 +53,7 @@ void ini(int argc, char ** argv)
 		str_to_num(argv[4], Node::Lx);
 		str_to_num(argv[5], Node::Ly);
 		str_to_num(argv[6], seed);
-		str_to_num(argv[7], seed);
+		str_to_num(argv[7], nStep);
 	}
 	else
 		cout_error(argc);
@@ -73,7 +73,7 @@ void ini(int argc, char ** argv)
 		bird = Node::ini_move_left(myran);
 		break;
 	case 9:
-		bird = Node::ini_snap(eta, epsilon, Node::rho_0, Node::Lx, Node::Ly, seed, atoi(argv[8]));
+		bird = Node::ini_copy_snap(eta, epsilon, Node::rho_0, Node::Lx, Node::Ly, seed, atoi(argv[8]));
 		break;
 	case 12:
 	{
@@ -82,7 +82,7 @@ void ini(int argc, char ** argv)
 		unsigned long long seed2;
 		str_to_num(argv[10], seed2);
 		int t2 = atoi(argv[11]);
-		bird = Node::ini_snap(eta, epsilon, Node::rho_0, Lx2, Ly2, seed2, t2);
+		bird = Node::ini_copy_snap(eta, epsilon, Node::rho_0, Lx2, Ly2, seed2, t2);
 		break;
 	}
 	default:
@@ -91,7 +91,7 @@ void ini(int argc, char ** argv)
 	}
 
 	//initialize outputting
-	output_ini(eta, epsilon, seed, nStep);
+	output_ini(eta, epsilon, seed, nStep, Grid::mm);
 
 	//link birds to cells
 	Grid::link_nodes(cell, bird);

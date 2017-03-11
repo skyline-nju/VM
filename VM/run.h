@@ -5,8 +5,6 @@
 
 void ini(int argc, char **argv);
 
-void update();
-
 void run();
 
 #endif

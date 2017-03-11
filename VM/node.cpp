@@ -74,7 +74,7 @@ Node * Node::ini_move_left(Ran *myran)
 	return bird;
 }
 
-Node * Node::ini_snap(double _eta, double _eps, double _rho_0, double _Lx, double _Ly, unsigned long long _seed, int _t)
+Node * Node::ini_copy_snap(double _eta, double _eps, double _rho_0, double _Lx, double _Ly, unsigned long long _seed, int _t)
 {
 	int nrows;
 	int ncols;

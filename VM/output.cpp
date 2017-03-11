@@ -11,7 +11,7 @@ int tot_step;
 double sum_phi = 0;
 int count_phi = 0;
 
-void output_ini(double eta, double epsilon, unsigned long long seed, int nStep)
+void output_ini(double eta, double epsilon, unsigned long long seed, int nStep, int nCell)
 {
     t_begin = clock();
     time_t nowtime = time(NULL);
@@ -52,7 +52,7 @@ void output_ini(double eta, double epsilon, unsigned long long seed, int nStep)
     fout_log << "Lx = " << Node::Lx << endl;
     fout_log << "Ly = " << Node::Ly << endl;
     fout_log << "N = " << Node::N << endl;
-    fout_log << "nCell = " << Grid::mm << endl;
+    fout_log << "nCell = " << nCell << endl;
     fout_log << "seed = " << seed << endl;
     fout_log << "total step: " << nStep << endl;
     fout_log << endl;
