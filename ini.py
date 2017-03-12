@@ -4,7 +4,8 @@ import os
 import struct
 
 
-def para2str(para, latex=False):
+def para2str(para: list, latex: bool=False) -> str:
+    """ Transform the list of parameters into a formatted string. """
     eta, eps, rho, Lx, Ly, seed, t = para
     if latex:
         res = \
@@ -15,7 +16,8 @@ def para2str(para, latex=False):
     return res
 
 
-def read(para):
+def read(para: list) -> np.ndarray:
+    """ Read x, y, theta from a binary file."""
     with open("s_%s.bin" % (para2str(para)), "rb") as f:
         buff = f.read()
         n = len(buff) // 12
@@ -24,13 +26,15 @@ def read(para):
     return x, y, theta
 
 
-def write(para, coor):
+def write(para: list, coor: np.ndarry):
+    """ Output data to a binary file. """
     data = coor.T
     file = "s_%s.bin" % (para2str(para))
     data.tofile(file)
 
 
-def show_snap(para, **kwargs):
+def show_snap(para: list, **kwargs):
+    """ Plot snapshot."""
     is_show = False
     if "ax" in kwargs:
         ax = kwargs["ax"]
@@ -50,65 +54,110 @@ def show_snap(para, **kwargs):
         plt.close()
 
 
-def replicate(para, **kwargs):
-    eta, eps, rho, Lx, Ly, seed, t = para
-    if "coor" in kwargs:
-        x0, y0, theta0 = kwargs["coor"]
-    else:
-        x0, y0, theta0 = read(para)
+def replicate_x(x0, y0, theta0, n, Lx, lim=None):
+    """ Replicate snapshot along x direction.
 
-    full_copy = False
-    if "xlim" in kwargs:
-        xlim = kwargs["xlim"]
-        ylim = [0, Ly]
-        nx = kwargs["nx"]
-        ny = 1
-    elif "ylim" in kwargs:
-        ylim = kwargs["ylim"]
-        xlim = [0, Lx]
-        ny = kwargs["ny"]
-        nx = 1
+        Parameters:
+        --------
+            x0: np.ndarray
+                Original x coordinates
+            y0: np.ndarray
+                Original y coordiantes
+            theta0: np.ndarray
+                Original theta
+            n: int
+                Times to replicate
+            Lx: int
+                Original box size in x direction
+            lim: list
+                The left and right edges of band region
+
+        Returns:
+        --------
+            x: np.ndarray
+                New x coordinates
+            y: np.ndarray
+                New y coordinates
+            theta: np.ndarray
+                New theta
+            Lx_new: int
+                New box size in x direction
+    """
+
+    if lim is not None:
+        # filter out the band region lim[0] < x < lim[1]
+        mask = np.where((x0 < lim[0]) | (x0 > lim[1]))
+        xc = x0[mask]
+        yc = y0[mask]
+        theta_c = theta0[mask]
+        xc[xc < lim[0]] += (lim[1] - lim[0])
+        dx = lim[0] + Lx - lim[1]
     else:
-        full_copy = True
-        xlim = [0, Lx]
-        ylim = [0, Ly]
-        if "nx" in kwargs:
-            nx = kwargs["nx"]
-        else:
-            nx = 1
-        if "ny" in kwargs:
-            ny = kwargs["ny"]
-        else:
-            ny = 1
+        xc = x0
+        yc = y0
+        theta_c = theta0
+        dx = Lx
 
     N0 = x0.size
-    if full_copy:
-        N_new = x0.size * nx * ny
-        x_new = np.zeros(N_new, np.float32)
-        y_new = np.zeros(N_new, np.float32)
-        theta_new = np.zeros(N_new, np.float32)
-        for j in range(ny):
-            for i in range(nx):
-                left = (i + j * nx) * N0
-                right = (i + 1 + j * nx) * N0
-                x_new[left:right] = x0 + i * Lx
-                y_new[left:right] = y0 + j * Ly
-                theta_new[left:right] = theta0
-        para_new = [eta, eps, rho, Lx * nx, Ly * ny, seed, t]
-        coor_new = np.array([x_new, y_new, theta_new])
-    # elif ny == 1:
-    #     mask = np.where((x0 < xlim[0]) & (x0 > xlim[1]))
-    #     xc, yc, thetac = x0[mask], y0[mask], theta0[mask]
-    #     xc[xc < xlim[0]] += (xlim[1] - xlim[0])
-    #     lx = xlim[0] + Lx - xlim[1]
-    #     N_new = N0 + (nx - 1) * xc.size
-    #     x_new = np.zeros(N_new, np.float32)
-    #     y_new = np.zeros(N_new, np.float32)
-    #     theta_new = np.zeros(N_new, np.float32)
-    #     for i in range(nx):
-    #         left = (i)
+    Nc = xc.size
+    N = N0 + n * Nc
+    x, y, theta = np.zeros((3, N), dtype=np.float32)
+    x[:N0] = x0
+    y[:N0] = y0
+    theta[:N0] = theta0
+    Lx_new = Lx + n * dx
+    for i in range(n):
+        k1 = N0 + i * Nc
+        k2 = N0 + (i + 1) * Nc
+        x[k1:k2] = xc + (i + 1) * dx
+        y[k1:k2] = yc
+        theta[k1:k2] = theta_c
+    return x, y, theta, Lx_new
+
+
+def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None):
+    """ Replicat snapshot along x and y direction.
+
+        Parameters:
+        --------
+            para: list
+                List: eta, eps, rho, Lx, Ly, seed, t
+            nx: int
+                Times of replication along x direction
+            ny: int
+                Times of replication along y direction
+            lim: list
+                If not None, filter out the region between lim[0]
+                and lim[1] when replicating.
+            reverse: bool
+                False for replicating along x direction first
+            coor: np.ndarray
+                Original coordination: x0, y0, theta0
+
+        Returns:
+        --------
+            para_new: list
+                eta, eps, rho_new, Lx_new, Ly_new, seed, t
+            coor_new: np.ndarray
+                Coordination of replicated snapshot
+
+    """
+    eta, eps, rho, Lx, Ly, seed, t = para
+    if coor is not None:
+        x0, y0, theta0 = coor
+    else:
+        x0, y0, theta0 = read(para)
+    if not reverse:
+        x1, y1, theta1, Lx_new = replicate_x(x0, y0, theta0, nx, Lx, lim)
+        y2, x2, theta2, Ly_new = replicate_x(y1, x1, theta1, ny, Ly)
+    else:
+        y1, x1, theta1, Ly_new = replicate_x(y0, x0, theta0, ny, Ly, lim)
+        x2, y2, theta2, Lx_new = replicate_x(x1, y1, theta1, nx, Lx)
+    rho_new = x2.size / (Lx_new * Ly_new)
+    para_new = [eta, eps, rho_new, Lx_new, Ly_new, seed, t]
+    coor_new = np.array([x2, y2, theta2])
     write(para_new, coor_new)
-    return para_new
+    return para_new, coor_new
 
 
 if __name__ == "__main__":
@@ -124,10 +173,11 @@ if __name__ == "__main__":
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
     x, y, theta = read(para)
     coor = np.array([x, y, theta])
-    nx = 2
-    ny = 1
+    nx = 1
+    ny = 2
     show_snap(para, coor=coor, ax=ax1)
-    para1 = replicate(para, nx=nx, ny=ny)
+    para1, coor1 = replicate(
+        para, nx=nx, ny=ny, coor=coor, reverse=True, lim=[25, 125])
     show_snap(para1, ax=ax2)
     plt.show()
     plt.close()
