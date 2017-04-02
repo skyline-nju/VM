@@ -28,12 +28,13 @@ struct Ran
 	}
 };
 
-// shuffle a list randomly
+
 template<class T>
 void shuffle(T *a, int n, Ran *myran)
 {
 	for (int i = n - 1; i >= 0; i--)
 	{
+		// generate a random int j that 0 <= j <= i  
 		int j = int(myran->doub() * (i + 1));
 		if (j > i)
 			j = i;

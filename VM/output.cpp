@@ -1,7 +1,6 @@
 #include "output.h"
-#define COUT_PHI
+#define ONE_SNAP_FILE
 using namespace std;
-
 ofstream fout_phi;
 ofstream fout_log;
 ofstream fout_snap;
@@ -10,6 +9,8 @@ clock_t t_begin;
 int tot_step;
 double sum_phi = 0;
 int count_phi = 0;
+int dt_snap = 2000;
+int dt_log = 100000;
 
 void output_ini(double eta, double epsilon, unsigned long long seed, int nStep, int nCell)
 {
@@ -29,17 +30,28 @@ void output_ini(double eta, double epsilon, unsigned long long seed, int nStep, 
     char buff_phi[100];
     char buff_log[100];
 #ifdef _MSC_VER
-    mkdir("..\\phi");
-    mkdir("..\\log");
-    mkdir("..\\snap");
-    snprintf(buff_phi, 100, "..\\phi\\p_%s.dat", para);
-    snprintf(buff_log, 100, "..\\log\\l_%s.dat", para);
+    mkdir("phi");
+    mkdir("log");
+    snprintf(buff_phi, 100, "phi\\p_%s.dat", para);
+    snprintf(buff_log, 100, "log\\l_%s.dat", para);
 #else
-    mkdir("../phi");
-    mkdir("../log");
-    mkdir("../snap");
-    snprintf(buff_phi, 100, "../phi/p_%s.dat", para);
-    snprintf(buff_log, 100, "../log/l_%s.dat", para);
+    mkdir("phi");
+    mkdir("log");
+    snprintf(buff_phi, 100, "phi/p_%s.dat", para);
+    snprintf(buff_log, 100, "log/l_%s.dat", para);
+#endif
+
+#ifdef ONE_SNAP_FILE
+	mkdir("snap_all");
+    char snap_file[100];
+#ifdef _MSC_VER
+    snprintf(snap_file, 100, "snap_all\\sa_%g_%g_%d_%d_%d_%d_%s.bin", eta, epsilon, int(Node::Lx), int(Node::Ly), Node::N, dt_snap, seed_str);
+#else
+    snprintf(snap_file, 100, "snap_all/sa_%g_%g_%d_%d_%d_%d_%s.bin", eta, epsilon, int(Node::Lx), int(Node::Ly), Node::N, dt_snap, seed_str);
+#endif
+    fout_snap.open(snap_file, ios::binary);
+#else
+	mkdir("snap");
 #endif
 
     fout_phi.open(buff_phi);
@@ -55,6 +67,9 @@ void output_ini(double eta, double epsilon, unsigned long long seed, int nStep, 
     fout_log << "nCell = " << nCell << endl;
     fout_log << "seed = " << seed << endl;
     fout_log << "total step: " << nStep << endl;
+#ifdef ONE_SNAP_FILE
+	fout_log << snap_file << endl;
+#endif
     fout_log << endl;
     fout_log << "step\th:m:s" << endl;
 }
@@ -65,8 +80,8 @@ void output_phi(const Node *bird, int step)
     double svy = 0;
     for (int i = 0; i < Node::N; i++)
     {
-	svx += bird[i].vx;
-	svy += bird[i].vy;
+		svx += bird[i].vx;
+		svy += bird[i].vy;
     }
     double phi = sqrt(svx * svx + svy * svy) / Node::N;
     double theta = atan2(svy, svx);
@@ -75,7 +90,7 @@ void output_phi(const Node *bird, int step)
     if (step > 50000)
     {
 	sum_phi += phi;
-	count_phi += 100;
+	count_phi += 1;
     }
 }
 
@@ -89,9 +104,9 @@ void output_log(int step)
     fout_log << step << "\t" << hour << ":" << min << ":" << sec << endl;
     if (step == tot_step)
     {
-	fout_log << "phi = " << sum_phi / tot_step << endl;
-	double speed = double(step) / dt * 3600;
-	fout_log << "simulation speed: " << int(speed) << " step per hour" << endl;
+		fout_log << "phi = " << sum_phi / count_phi << endl;
+		double speed = double(step) / dt * 3600;
+		fout_log << "simulation speed: " << int(speed) << " step per hour" << endl;
     }
 }
 
@@ -99,20 +114,34 @@ void output_snap(const Node *bird, int step)
 {
     char file[100];
 #ifdef _MSC_VER
-    snprintf(file, 100, "..\\snap\\s_%s_%08d.bin", para, step);
+    snprintf(file, 100, "snap\\s_%s_%08d.bin", para, step);
 #else
-    snprintf(file, 100, "../snap/s_%s_%08d.bin", para, step);
+    snprintf(file, 100, "snap/s_%s_%08d.bin", para, step);
 #endif
     fout_snap.open(file, ios::binary);
     float *buff = new float[3 * Node::N];
     for (int j = 0; j < Node::N; j++)
     {
-	buff[3 * j] = bird[j].x;
-	buff[3 * j + 1] = bird[j].y;
-	buff[3 * j + 2] = atan2(bird[j].vy, bird[j].vx);
+		buff[3 * j] = bird[j].x;
+		buff[3 * j + 1] = bird[j].y;
+		buff[3 * j + 2] = atan2(bird[j].vy, bird[j].vx);
     }
     fout_snap.write((char *)&buff[0], sizeof(float) * Node::N * 3);
     fout_snap.close();
+    delete[] buff;
+    buff = nullptr;
+}
+
+void output_snap(const Node *bird)
+{
+    float *buff = new float[3 * Node::N];
+    for (int j = 0; j < Node::N; j++)
+    {
+		buff[3 * j] = bird[j].x;
+		buff[3 * j + 1] = bird[j].y;
+		buff[3 * j + 2] = atan2(bird[j].vy, bird[j].vx);
+    }
+    fout_snap.write((char *)&buff[0], sizeof(float) * Node::N * 3);
     delete[] buff;
     buff = nullptr;
 }
@@ -121,12 +150,17 @@ void output(const Node *bird, int step)
 {
     if (step % 100 == 0)
     {
-	output_phi(bird, step);
-	if (step % 100000 == 0)
-	{
-	    output_log(step);
-	    output_snap(bird, step);
-	}
+		output_phi(bird, step);
+        if (step % dt_snap == 0)
+        {
+#ifdef ONE_SNAP_FILE
+            output_snap(bird);
+#else
+		    output_snap(bird, step);
+#endif
+            if (step % dt_log == 0)
+                output_log(step);
+        }
     }
 }
 

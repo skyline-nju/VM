@@ -103,10 +103,22 @@ void update_coor()
 
 	//calculating noise
 	double *noise = new double[Node::N];
-	for (int i = 0; i < Node::N; i++)
+
+	if (epsilon==0.)
 	{
-		noise[i] = (myran->doub() - 0.5) * eta2PI + disorder[bird[i].cell_idx];
+		for (int i = 0; i < Node::N; i++)
+		{
+			noise[i] = (myran->doub() - 0.5) * eta2PI;
+		}
 	}
+	else
+	{
+		for (int i = 0; i < Node::N; i++)
+		{
+			noise[i] = (myran->doub() - 0.5) * eta2PI + disorder[bird[i].cell_idx];
+		}
+	}
+
 
 	//updating coordination
 	for (int i = 0; i < Node::N; i++)

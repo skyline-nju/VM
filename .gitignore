@@ -14,6 +14,11 @@ snap/
 phi/
 log/
 rhox/
+VM/snap/
+VM/phi/
+VM/log/
+VM/rhox/
+VM/snap_all/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

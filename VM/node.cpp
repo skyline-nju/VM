@@ -103,9 +103,9 @@ Node * Node::ini_copy_snap(double _eta, double _eps, double _rho_0, double _Lx, 
 	snprintf(para, 100, "%g_%g_%g_%d_%d_%s_%08d", _eta, _eps, _rho_0, int(_Lx), int(_Ly), seed_str, _t);
 	char infile[100];
 #ifdef _MSC_VER
-	snprintf(infile, 100, "..\\snap\\s_%s.bin", para);
+	snprintf(infile, 100, "snap\\s_%s.bin", para);
 #else
-	snprintf(infile, 100, "../snap/s_%s.bin", para);
+	snprintf(infile, 100, "snap/s_%s.bin", para);
 #endif
 	ifstream fin(infile, ios::binary);
 	if (!fin.is_open())

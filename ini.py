@@ -26,7 +26,7 @@ def read(para: list) -> np.ndarray:
     return x, y, theta
 
 
-def write(para: list, coor: np.ndarry):
+def write(para: list, coor: np.ndarray):
     """ Output data to a binary file. """
     data = coor.T
     file = "s_%s.bin" % (para2str(para))
@@ -35,9 +35,9 @@ def write(para: list, coor: np.ndarry):
 
 def show_snap(para: list, **kwargs):
     """ Plot snapshot."""
-    is_show = False
     if "ax" in kwargs:
         ax = kwargs["ax"]
+        is_show = False
     else:
         ax = plt.subplot(111)
         is_show = True
@@ -161,23 +161,13 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None):
 
 
 if __name__ == "__main__":
-    os.chdir("snap")
-    eta = 0.38
+    os.chdir("VM/snap")
+    eta = 0.35
     eps = 0
     rho = 1
-    Lx = 200
-    Ly = 200
-    seed = 123
-    t = 100000
+    Lx = 160
+    Ly = 700
+    seed = 1234
+    t = 6000
     para = [eta, eps, rho, Lx, Ly, seed, t]
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
-    x, y, theta = read(para)
-    coor = np.array([x, y, theta])
-    nx = 1
-    ny = 2
-    show_snap(para, coor=coor, ax=ax1)
-    para1, coor1 = replicate(
-        para, nx=nx, ny=ny, coor=coor, reverse=True, lim=[25, 125])
-    show_snap(para1, ax=ax2)
-    plt.show()
-    plt.close()
+    show_snap(para)
