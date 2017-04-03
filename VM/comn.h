@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
 #ifdef _MSC_VER
 #include <io.h>
@@ -17,7 +18,11 @@
 
 const double PI = 3.14159265358979;
 
+// create folder
 void mkdir(const char *folder);
+
+// split string by a delimiter
+std::vector<std::string> split(const std::string &str, const std::string &dlm);
 
 template <class T>
 void str_to_num(const char *str, T &num)

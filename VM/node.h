@@ -18,6 +18,7 @@ struct Node
 	static Node *ini_move_left(Ran *myran);
 	static Node *ini_copy_snap(double _eta, double _eps, double _rho0, double _Lx, double _Ly, unsigned long long _seed, int _t);
 
+
 	double x, y, vx, vx0, vy, vy0;
 	int cell_idx;
 	Node* next;

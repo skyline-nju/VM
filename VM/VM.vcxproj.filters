@@ -24,13 +24,16 @@
     <ClInclude Include="rand.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="output.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="run.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="comn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cmdline.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="iodata.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,13 +47,13 @@
     <ClCompile Include="node.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="output.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="run.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="comn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="iodata.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

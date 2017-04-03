@@ -19,6 +19,7 @@ VM/phi/
 VM/log/
 VM/rhox/
 VM/snap_all/
+VM/snap_one/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

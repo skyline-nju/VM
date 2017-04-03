@@ -97,10 +97,8 @@ Node * Node::ini_copy_snap(double _eta, double _eps, double _rho_0, double _Lx, 
 	float *vx = new float[_N];
 	float *vy = new float[_N];
 
-	char seed_str[30];
-	num_to_str(_seed, seed_str);
 	char para[100];
-	snprintf(para, 100, "%g_%g_%g_%d_%d_%s_%08d", _eta, _eps, _rho_0, int(_Lx), int(_Ly), seed_str, _t);
+	snprintf(para, 100, "%g_%g_%g_%d_%d_%llu_%08d", _eta, _eps, _rho_0, int(_Lx), int(_Ly), _seed, _t);
 	char infile[100];
 #ifdef _MSC_VER
 	snprintf(infile, 100, "snap\\s_%s.bin", para);

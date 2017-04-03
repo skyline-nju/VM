@@ -1,14 +1,16 @@
 #include "grid.h"
 
+using namespace std;
+
 int Grid::mx;
 int Grid::my;
 int Grid::mm;
 double Grid::l0 = 1.0;
 
-Grid * Grid::ini()
+Grid * Grid::ini(double Lx, double Ly)
 {
-	mx = int(Node::Lx / l0);
-	my = int(Node::Ly / l0);
+	mx = int(Lx / l0);
+	my = int(Ly / l0);
 	mm = mx * my;
 	Grid *cell = new Grid[mm];
 	for (int i = 0; i < mm; i++)

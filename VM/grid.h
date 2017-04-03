@@ -12,7 +12,7 @@ struct Grid
 	static void all_pairs(Grid *cell);
 	static void link_nodes(Grid *cell, Node *node);
 	static void refresh(Grid *cell, Node *node);
-	static Grid *ini();
+	static Grid *ini(double Lx, double Ly);
 
 	Node* head;
 

@@ -139,19 +139,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cmdline.h" />
     <ClInclude Include="comn.h" />
     <ClInclude Include="grid.h" />
+    <ClInclude Include="iodata.h" />
     <ClInclude Include="node.h" />
-    <ClInclude Include="output.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="run.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="comn.cpp" />
     <ClCompile Include="grid.cpp" />
+    <ClCompile Include="iodata.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="node.cpp" />
-    <ClCompile Include="output.cpp" />
     <ClCompile Include="run.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
