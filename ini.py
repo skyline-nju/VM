@@ -165,9 +165,9 @@ if __name__ == "__main__":
     eta = 0.35
     eps = 0
     rho = 1
-    Lx = 160
-    Ly = 700
-    seed = 1234
-    t = 6000
+    Lx = 150
+    Ly = 100
+    seed = 123
+    t = 100000
     para = [eta, eps, rho, Lx, Ly, seed, t]
     show_snap(para)

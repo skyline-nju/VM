@@ -73,9 +73,15 @@ int main(int argc, char* argv[])
 	{
 		Node::rho_0=cmd.get<double>("rho0");
 		if (cmd.exist("moveleft"))
+		{
 			flag_ini_move_left = true;
+			flag_ini_rand = false;
+		}
 		else
+		{
 			flag_ini_rand = true;
+			flag_ini_move_left = false;
+		}
 	}
 
 	if (cmd.exist("multsnap"))
@@ -92,11 +98,17 @@ int main(int argc, char* argv[])
 	if (flag_disorder)
 		ini_rand_torques(&disorder, Grid::mm, epsilon, myran);
 
-	//initialize the coordination of birds
+	//initial location of birds
 	if (flag_ini_rand)
+	{
 		bird = Node::ini_rand(myran);
+		cout << "random birds" << endl;
+	}
 	else if (flag_ini_move_left)
+	{
 		bird = Node::ini_move_left(myran);
+		cout << "all birds fly toward left at beginning" << endl;
+	}
 
 	//set output
 	ini_output(eta, epsilon, seed, nStep, Grid::mm, flag_one_snap_file, dt_snap);
@@ -104,6 +116,14 @@ int main(int argc, char* argv[])
 	//link birds to cell list
 	Grid::link_nodes(cell, bird);
 
+	cout << "eta = " << eta << endl;
+	cout << "epsilon = " << epsilon << endl;
+	cout << "rho_0 = " << Node::rho_0 << endl;
+	cout << "Lx = " << Node::Lx << endl;
+	cout << "Ly = " << Node::Ly << endl;
+	cout << "seed = " << seed << endl;
+	cout << "tot steps = " << nStep << endl;
+	cout << "tot cells = " << Grid::mm << endl;
 	//run
 	if (flag_disorder)
 		run(bird, cell, myran, nStep, eta, epsilon, disorder);

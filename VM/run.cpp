@@ -49,22 +49,24 @@ void update_coor(Node *bird, Ran* myran, double eta, double epsilon, const doubl
 	noise = nullptr;
 }
 
-void run(Node *bird, Grid *cell, Ran*myran, int nStep, double eta)
+void run(Node *bird, Grid *cell, Ran *myran, int nStep, double eta)
 {
 	for (int i = 1; i <= nStep; i++)
 	{
 		Grid::all_pairs(cell);
 		update_coor(bird, myran, eta);
+		Grid::refresh(cell, bird);
 		output(bird, i);
 	}
 }
 
-void run(Node *bird, Grid *cell, Ran*myran, int nStep, double eta, double epsilon, const double *disorder)
+void run(Node *bird, Grid *cell, Ran *myran, int nStep, double eta, double epsilon, const double *disorder)
 {
 	for (int i = 1; i <= nStep; i++)
 	{
 		Grid::all_pairs(cell);
 		update_coor(bird, myran, eta, epsilon, disorder);
+		Grid::refresh(cell, bird);
 		output(bird, i);
 	}
 }
