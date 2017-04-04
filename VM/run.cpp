@@ -1,14 +1,53 @@
 #include "run.h"
-#include "iodata.h"
 using namespace std;
 
-void ini_rand_torques(double **disorder, int n, double epsilon, Ran *myran)
+void ini_birds(Node **p_bird, Ran *myran, const cmdline::parser &cmd)
 {
+	if (!cmd.exist("rho0") && !cmd.exist("file"))
+	{
+		cerr << cmd.usage();
+		exit(1);
+	}
+	else if (cmd.exist("file"))
+	{
+		string infile(cmd.get<string>("file"));
+		vector<float> x;
+		vector<float> y;
+		vector<float> theta;
+		int nbird;
+		double Lx;
+		double Ly;
+		read_snap(infile, cmd.get<int>("idx_frame"), nbird, Lx, Ly, x, y, theta);
+		Node::rho_0 = nbird / (Lx * Ly);
+		*p_bird = Node::ini_from_snap(nbird, Lx, Ly, x, y, theta);
+	}
+	else
+	{
+		Node::rho_0 = cmd.get<double>("rho0");
+		if (cmd.get<string>("ini_mode") == "left")
+		{
+			*p_bird = Node::ini_move_left(myran);
+		}
+		else if (cmd.get<string>("ini_mode") == "rand")
+		{
+			*p_bird = Node::ini_rand(myran);
+		}
+		else
+		{
+			cerr << cmd.usage();
+			exit(1);
+		}
+	}
+}
+
+void ini_rand_torques(double **disorder, int n, double epsilon, unsigned long long seed)
+{
+	Ran myran(seed);
 	double d = 1.0 / (n - 1);
 	double *torque = new double[n];
 	for (int i = 0; i < n; i++)
 		torque[i] = (-0.5 + i *d) * epsilon * 2.0 * PI;
-	shuffle(torque, n, myran);
+	shuffle(torque, n, &myran);
 	*disorder = torque;
 }
 

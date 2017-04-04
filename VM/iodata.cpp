@@ -19,11 +19,89 @@ int dt_snap = 2000;
 bool flag_one_snap_file = true;
 int tot_step;
 
-void ini_output(double eta, double epsilon, unsigned long long seed, int nStep, int nCell, bool flag_snap_one, int snap_interval)
+/* read a snapshot */
+void read_snap(	string infile,
+				int idx_frame,
+				int &nbird, 
+				double &Lx,
+				double &Ly,
+				vector<float> &x, 
+				vector<float> &y, 
+				vector<float> &theta)
+{
+	vector<string> str_list = split(infile, "_");
+	bool is_single_frame = str_list[0] == "s" ? true : false;
+	string folder = is_single_frame ? "snap" : "snap_one";
+	string path(folder + dlm + infile);
+	ifstream fin(path, ios::binary | ios::ate);
+	if (!fin.is_open())
+	{
+		cout << "Error, failed to open " << infile << endl;
+		exit(1);
+	}
+	streamsize count = fin.tellg();
+	int frame_size;
+	if (is_single_frame)
+	{
+		nbird = count / sizeof(float) / 3;
+		str_to_num(str_list[4], Lx);
+		str_to_num(str_list[5], Ly);
+		frame_size = count;
+	}
+	else
+	{
+		str_to_num(str_list[5], nbird);
+		str_to_num(str_list[3], Lx);
+		str_to_num(str_list[4], Ly);
+		cout << "Lx0 = " << Lx << endl;
+		cout << "Ly0 = " << Ly << endl;
+		frame_size = sizeof(float) * nbird * 3;
+		if (count % nbird != 0)
+		{
+			cout << "error when read " << infile << endl;
+			exit(1);
+		}
+	}
+	cout << "size of file " << count << endl;
+	cout << "num of birds = " << nbird << endl;
+	cout << "frame size = " << frame_size << endl;
+	cout << "idx_frame = " << idx_frame << endl;
+	if (idx_frame < 0)
+		fin.seekg(-frame_size * idx_frame, ios::end);
+	else
+		fin.seekg(frame_size * idx_frame, ios::beg);
+	cout << (count - fin.tellg()) / 3 / sizeof(float) << endl;
+	float *buff = new float[nbird * 3];
+	fin.read((char*)&buff, frame_size);
+	fin.close();
+	
+	x.reserve(nbird);
+	y.reserve(nbird);
+	theta.reserve(nbird);
+	for (int i = 0; i < nbird; i++)
+	{
+		x.push_back(buff[3 * i]);
+		y.push_back(buff[3 * i + 1]);
+		theta.push_back(buff[3 * i + 2]);
+	}
+
+	delete[] buff;
+	buff = nullptr;
+}
+
+/* initialize output */
+void ini_output(double eta, 
+				double epsilon, 
+				unsigned long long seed, 
+				int nStep, 
+				int nCell, 
+				const string &snap_mode, 
+				int snap_interval)
 {
 	tot_step = nStep;
 	dt_snap = snap_interval;
-	snprintf(para, 100, "%g_%g_%g_%d_%d_%llu", eta, epsilon, Node::rho_0, int(Node::Lx), int(Node::Ly), seed);
+	snprintf(para, 100, "%g_%g_%g_%d_%d_%llu",
+		eta, epsilon, Node::rho_0, int(Node::Lx), int(Node::Ly), seed);
 	mkdir("phi");
 	mkdir("log");
 	char buff[100];
@@ -32,8 +110,7 @@ void ini_output(double eta, double epsilon, unsigned long long seed, int nStep, 
 	snprintf(buff, 100, "log%sl_%s.dat", dlm.c_str(), para);
 	fout_log.open(buff);
 
-
-	if (flag_snap_one)
+	if (snap_mode == "one")
 	{
 		mkdir("snap_one");
 		flag_one_snap_file = true;
@@ -41,7 +118,7 @@ void ini_output(double eta, double epsilon, unsigned long long seed, int nStep, 
 			dlm.c_str(), eta, epsilon, int(Node::Lx), int(Node::Ly), Node::N, dt_snap, seed);
 		fout_snap.open(buff, ios::binary);
 	}
-	else
+	else if (snap_mode == "mult")
 	{
 		mkdir("snap");
 		flag_one_snap_file = false;
@@ -59,7 +136,8 @@ void output_phi(const Node *bird, int step)
 	}
 	double phi = sqrt(svx * svx + svy * svy) / Node::N;
 	double theta = atan2(svy, svx);
-	fout_phi << fixed << std::setw(16) << setprecision(10) << step << "\t" << phi << "\t" << theta << endl;
+	fout_phi << fixed << std::setw(16) << setprecision(10)
+		<< step << "\t" << phi << "\t" << theta << endl;
 }
 
 void output_log(int step)
@@ -67,6 +145,7 @@ void output_log(int step)
 	fout_log << step << endl;
 }
 
+/* Output snapshots in separated files */
 void output_snap(const Node *bird, int step)
 {
 	char file[100];
@@ -85,6 +164,7 @@ void output_snap(const Node *bird, int step)
 	buff = nullptr;
 }
 
+/* Output snapshots in one single file */
 void output_snap(const Node *bird)
 {
 	float *buff = new float[3 * Node::N];

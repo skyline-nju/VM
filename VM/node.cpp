@@ -1,7 +1,6 @@
 #include "node.h"
 
 using namespace std;
-
 double Node::Lx;
 double Node::Ly;
 double Node::v0 = 0.5;
@@ -155,5 +154,47 @@ Node * Node::ini_copy_snap(double _eta, double _eps, double _rho_0, double _Lx, 
 	delete[] vy;
 	x = y = vx = vy = nullptr;
 	cout << "load snapshot successfully" << endl;
+	return bird;
+}
+
+Node * Node::ini_from_snap(	int N0, 
+							double Lx0, 
+							double Ly0, 
+							const std::vector<float>& x0, 
+							const std::vector<float>& y0, 
+							const std::vector<float>& theta0)
+{
+	int nrows;
+	int ncols;
+	// check the compatibility of size of input snapshot
+	if (int(Lx) % int(Lx0) == 0 && int(Ly) % int(Ly0) == 0)
+	{
+		ncols = int(Lx) / int(Lx0);
+		nrows = int(Ly) / int(Ly0);
+	}
+	else
+	{
+		cout << "Error, the size of input snapshot is not right" << endl;
+		exit(1);
+	}
+	N = N0 * nrows * ncols;
+	Node *bird = new Node[N];
+	for (int row = 0; row < nrows; row++)
+	{
+		double dy = row * Ly0;
+		for (int col = 0; col < ncols; col++)
+		{
+			double dx = col * Lx0;
+			for (int i = 0; i < N0; i++)
+			{
+				int j = i + (col + row * ncols) * N0;
+				bird[j].x = x0[i] + dx;
+				bird[j].y = y0[i] + dy;
+				bird[j].vx = bird[j].vx0 = cos(theta0[i]);
+				bird[j].vy = bird[j].vy0 = sin(theta0[i]);
+				bird[j].next = nullptr;
+			}
+		}
+	}
 	return bird;
 }

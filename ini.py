@@ -26,6 +26,21 @@ def read(para: list) -> np.ndarray:
     return x, y, theta
 
 
+def read_frame(eta, eps, Lx, Ly, N, dt, seed):
+    """ Read a frame from a large binary file."""
+    file = "so_%g_%g_%d_%d_%d_%d_%d.bin" % (eta, eps, Lx, Ly, N, dt, seed)
+    BLOCK_SIZE = N * 3 * 4
+    with open(file, "rb") as f:
+        while True:
+            block = f.read(BLOCK_SIZE)
+            if not block:
+                break
+            else:
+                frame = struct.unpack("%df" % (N*3), block)
+                frame = np.array(frame, dtype=np.float32).reshape(N, 3).T
+                yield frame
+
+
 def write(para: list, coor: np.ndarray):
     """ Output data to a binary file. """
     data = coor.T
@@ -161,13 +176,27 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None):
 
 
 if __name__ == "__main__":
-    os.chdir("VM/snap")
+    # os.chdir("VM/snap")
+    # eta = 0.35
+    # eps = 0
+    # rho = 1
+    # Lx = 140
+    # Ly = 100
+    # seed = 12
+    # t = 100000
+    # para = [eta, eps, rho, Lx, Ly, seed, t]
+    # show_snap(para)
+
+    os.chdir("VM/snap_one")
     eta = 0.35
     eps = 0
     rho = 1
-    Lx = 150
-    Ly = 100
-    seed = 123
-    t = 100000
-    para = [eta, eps, rho, Lx, Ly, seed, t]
-    show_snap(para)
+    Lx = 140
+    Ly = 200
+    N = 28000
+    dt = 10000
+    seed = 12
+    frames = read_frame(eta, eps, Lx, Ly, N, dt, seed)
+    for i, frame in enumerate(frames):
+        para = [eta, eps, rho, Lx, Ly, seed, (i+1) * dt]
+        show_snap(para, coor=frame)

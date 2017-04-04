@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <string>
 
 #ifdef _MSC_VER
 #include <io.h>
@@ -25,7 +26,7 @@ void mkdir(const char *folder);
 std::vector<std::string> split(const std::string &str, const std::string &dlm);
 
 template <class T>
-void str_to_num(const char *str, T &num)
+void str_to_num(const std::string str, T &num)
 {
 	std::stringstream ss;
 	ss << str;
@@ -33,7 +34,7 @@ void str_to_num(const char *str, T &num)
 }
 
 template <class T>
-void num_to_str(const T &num, char * str)
+void num_to_str(const T &num, std::string str)
 {
 	std::stringstream ss;
 	ss << num;
