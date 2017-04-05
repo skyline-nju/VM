@@ -176,27 +176,27 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None):
 
 
 if __name__ == "__main__":
-    # os.chdir("VM/snap")
-    # eta = 0.35
-    # eps = 0
-    # rho = 1
-    # Lx = 140
-    # Ly = 100
-    # seed = 12
-    # t = 100000
-    # para = [eta, eps, rho, Lx, Ly, seed, t]
-    # show_snap(para)
-
-    os.chdir("VM/snap_one")
+    os.chdir("VM/snap")
     eta = 0.35
     eps = 0
     rho = 1
     Lx = 140
     Ly = 200
-    N = 28000
-    dt = 10000
-    seed = 12
-    frames = read_frame(eta, eps, Lx, Ly, N, dt, seed)
-    for i, frame in enumerate(frames):
-        para = [eta, eps, rho, Lx, Ly, seed, (i+1) * dt]
-        show_snap(para, coor=frame)
+    seed = 33
+    t = 100000
+    para = [eta, eps, rho, Lx, Ly, seed, t]
+    show_snap(para)
+
+    # os.chdir("VM/snap_one")
+    # eta = 0.35
+    # eps = 0
+    # rho = 1
+    # Lx = 140
+    # Ly = 200
+    # N = 28000
+    # dt = 10000
+    # seed = 12
+    # frames = read_frame(eta, eps, Lx, Ly, N, dt, seed)
+    # for i, frame in enumerate(frames):
+    #     para = [eta, eps, rho, Lx, Ly, seed, (i+1) * dt]
+    #     show_snap(para, coor=frame)

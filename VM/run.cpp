@@ -10,16 +10,18 @@ void ini_birds(Node **p_bird, Ran *myran, const cmdline::parser &cmd)
 	}
 	else if (cmd.exist("file"))
 	{
-		string infile(cmd.get<string>("file"));
+		iSnapshot isnap(cmd.get<string>("file"));
 		vector<float> x;
 		vector<float> y;
 		vector<float> theta;
-		int nbird;
 		double Lx;
 		double Ly;
-		read_snap(infile, cmd.get<int>("idx_frame"), nbird, Lx, Ly, x, y, theta);
-		Node::rho_0 = nbird / (Lx * Ly);
-		*p_bird = Node::ini_from_snap(nbird, Lx, Ly, x, y, theta);
+		isnap.from_file(cmd.get<int>("idx_frame"), Lx, Ly, x, y, theta);
+		Node::rho_0 = x.size()/ (Lx*Ly);
+		cout << "N0 = " << x.size() << endl;
+		*p_bird = Node::ini_from_snap(Lx, Ly, x, y, theta);
+		cout << "rho_0 = " << Node::rho_0 << endl;
+
 	}
 	else
 	{
@@ -42,30 +44,18 @@ void ini_birds(Node **p_bird, Ran *myran, const cmdline::parser &cmd)
 
 void ini_rand_torques(double **disorder, int n, double epsilon, unsigned long long seed)
 {
-	Ran myran(seed);
-	double d = 1.0 / (n - 1);
-	double *torque = new double[n];
-	for (int i = 0; i < n; i++)
-		torque[i] = (-0.5 + i *d) * epsilon * 2.0 * PI;
-	shuffle(torque, n, &myran);
-	*disorder = torque;
+	if (epsilon > 0)
+	{
+		Ran myran(seed);
+		double d = 1.0 / (n - 1);
+		double *torque = new double[n];
+		for (int i = 0; i < n; i++)
+			torque[i] = (-0.5 + i *d) * epsilon * 2.0 * PI;
+		shuffle(torque, n, &myran);
+		*disorder = torque;
+	}
 }
 
-void update_coor(Node *bird, Ran *myran, double eta)
-{
-	static double eta2PI = eta * 2 * PI;
-	double *noise = new double[Node::N];
-	for (int i = 0; i < Node::N; i++)
-	{
-		noise[i] = (myran->doub() - 0.5) * eta2PI;
-	}
-	for (int i = 0; i < Node::N; i++)
-	{
-		bird[i].move(noise[i]);
-	}
-	delete[] noise;
-	noise = nullptr;
-}
 
 void update_coor(Node *bird, Ran* myran, double eta, double epsilon, const double *disorder)
 {
@@ -73,10 +63,15 @@ void update_coor(Node *bird, Ran* myran, double eta, double epsilon, const doubl
 
 	//calculating noise
 	double *noise = new double[Node::N];
-
-	for (int i = 0; i < Node::N; i++)
+	if (disorder)
 	{
-		noise[i] = (myran->doub() - 0.5) * eta2PI + disorder[bird[i].cell_idx];
+		for (int i = 0; i < Node::N; i++)
+			noise[i] = (myran->doub() - 0.5) * eta2PI + disorder[bird[i].cell_idx];
+	}
+	else
+	{
+		for (int i = 0; i < Node::N; i++)
+			noise[i] = (myran->doub() - 0.5) * eta2PI;
 	}
 
 	//updating coordination
@@ -88,24 +83,15 @@ void update_coor(Node *bird, Ran* myran, double eta, double epsilon, const doubl
 	noise = nullptr;
 }
 
-void run(Node *bird, Grid *cell, Ran *myran, int nStep, double eta)
-{
-	for (int i = 1; i <= nStep; i++)
-	{
-		Grid::all_pairs(cell);
-		update_coor(bird, myran, eta);
-		Grid::refresh(cell, bird);
-		output(bird, i);
-	}
-}
-
-void run(Node *bird, Grid *cell, Ran *myran, int nStep, double eta, double epsilon, const double *disorder)
+void run(Node *bird, Grid *cell, Ran *myran, 
+	int nStep, double eta, double epsilon, const double *disorder, 
+	Output &out)
 {
 	for (int i = 1; i <= nStep; i++)
 	{
 		Grid::all_pairs(cell);
 		update_coor(bird, myran, eta, epsilon, disorder);
 		Grid::refresh(cell, bird);
-		output(bird, i);
+		out.write(bird, Node::N, i);
 	}
 }

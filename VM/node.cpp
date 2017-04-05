@@ -157,8 +157,7 @@ Node * Node::ini_copy_snap(double _eta, double _eps, double _rho_0, double _Lx, 
 	return bird;
 }
 
-Node * Node::ini_from_snap(	int N0, 
-							double Lx0, 
+Node * Node::ini_from_snap(	double Lx0, 
 							double Ly0, 
 							const std::vector<float>& x0, 
 							const std::vector<float>& y0, 
@@ -177,6 +176,7 @@ Node * Node::ini_from_snap(	int N0,
 		cout << "Error, the size of input snapshot is not right" << endl;
 		exit(1);
 	}
+	int N0 = x0.size();
 	N = N0 * nrows * ncols;
 	Node *bird = new Node[N];
 	for (int row = 0; row < nrows; row++)

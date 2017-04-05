@@ -17,8 +17,7 @@ struct Node
 	static Node *ini_rand(Ran *myran);
 	static Node *ini_move_left(Ran *myran);
 	static Node *ini_copy_snap(double _eta, double _eps, double _rho0, double _Lx, double _Ly, unsigned long long _seed, int _t);
-	static Node *ini_from_snap(	int N0, 
-								double Lx0, 
+	static Node *ini_from_snap(	double Lx0, 
 								double Ly0, 
 								const std::vector<float> &x0, 
 								const std::vector<float> &y0, 

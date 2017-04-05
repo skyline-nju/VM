@@ -33,7 +33,7 @@
     <ClInclude Include="cmdline.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="iodata.h">
+    <ClInclude Include="io_data.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,7 +53,7 @@
     <ClCompile Include="comn.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="iodata.cpp">
+    <ClCompile Include="io_data.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

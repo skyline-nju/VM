@@ -39,7 +39,9 @@ int main(int argc, char* argv[])
 	ini_birds(&bird, myran, cmd);
 
 	//set output
-	ini_output(eta, epsilon, seed, nStep, Grid::mm, cmd.get<string>("snap_mode"), cmd.get<int>("snap_dt"));
+	Output out(eta, epsilon, Node::rho_0, Node::Lx, Node::Ly,
+		Node::N, seed, nStep, 100000, 100,
+		cmd.get<int>("snap_dt"), cmd.get<string>("snap_mode"));
 
 	//link birds to cell list
 	Grid::link_nodes(cell, bird);
@@ -54,12 +56,8 @@ int main(int argc, char* argv[])
 	cout << "tot cells = " << Grid::mm << endl;
 
 	//run
-	if (epsilon > 0)
-	{
-		double *disorder = new double[Grid::mm];
-		ini_rand_torques(&disorder, Grid::mm, epsilon, seed);
-		run(bird, cell, myran, nStep, eta, epsilon, disorder);
-	}
-	else
-		run(bird, cell, myran, nStep, eta);
+	double *disorder = nullptr;
+	ini_rand_torques(&disorder, Grid::mm, epsilon, seed);
+	run(bird, cell, myran, nStep, eta, epsilon, disorder, out);
+
 }
