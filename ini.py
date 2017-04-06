@@ -26,18 +26,70 @@ def read(para: list) -> np.ndarray:
     return x, y, theta
 
 
-def read_frame(eta, eps, Lx, Ly, N, dt, seed):
+def read_frame(eta, eps, Lx, Ly, N, dt, seed, ncols=None, nrows=None, ff=None):
     """ Read a frame from a large binary file."""
-    file = "so_%g_%g_%d_%d_%d_%d_%d.bin" % (eta, eps, Lx, Ly, N, dt, seed)
-    BLOCK_SIZE = N * 3 * 4
-    with open(file, "rb") as f:
-        while True:
-            block = f.read(BLOCK_SIZE)
-            if not block:
-                break
-            else:
-                frame = struct.unpack("%df" % (N*3), block)
-                frame = np.array(frame, dtype=np.float32).reshape(N, 3).T
+    if ncols is None:
+        file = "snap_one/so_%g_%g_%d_%d_%d_%d_%d.bin" % (eta, eps, Lx, Ly, N,
+                                                         dt, seed)
+        BLOCK_SIZE = N * 3 * 4
+        with open(file, "rb") as f:
+            while True:
+                block = f.read(BLOCK_SIZE)
+                if not block:
+                    break
+                else:
+                    frame = struct.unpack("%df" % (N * 3), block)
+                    frame = np.array(frame, dtype=np.float32).reshape(N, 3).T
+                    yield frame
+    elif ff == "iff":
+        file = "coarse/ciff_%g_%g_%d_%d_%d_%d_%d_%d_%d.bin" % (
+            eta, eps, Lx, Ly, ncols, nrows, N, dt, seed)
+        BLOCK_SIZE = N * 4
+        with open(file, "rb") as f:
+            while True:
+                block = f.read(BLOCK_SIZE)
+                if not block:
+                    break
+                else:
+                    sum_num = np.array(
+                        struct.unpack("%di" % N, block), dtype=int)
+                block = f.read(BLOCK_SIZE * 2)
+                if not block:
+                    break
+                else:
+                    sum_vx, sum_vy = np.array(
+                        struct.unpack("%df" % (2 * N), block),
+                        dtype=np.float32).reshape(2, N)
+                frame = np.array([
+                    sum_num.reshape(nrows, ncols),
+                    sum_vx.reshape(nrows, ncols), sum_vy.reshape(nrows, ncols)
+                ])
+                yield frame
+    elif ff == "Bbb":
+        file = "coarse/cBbb_%g_%g_%d_%d_%d_%d_%d_%d_%d.bin" % (
+            eta, eps, Lx, Ly, ncols, nrows, N, dt, seed)
+        BLOCK_SIZE = N
+        with open(file, "rb") as f:
+            while True:
+                block = f.read(BLOCK_SIZE)
+                if not block:
+                    break
+                else:
+                    sum_num = np.array(
+                        struct.unpack("%dB" % N, block), dtype=int)
+                block = f.read(BLOCK_SIZE * 2)
+                if not block:
+                    break
+                else:
+                    sum_vx, sum_vy = np.array(
+                        struct.unpack("%db" % (2 * N), block),
+                        dtype=np.float32).reshape(2, N)
+                sum_vx /= 128
+                sum_vy /= 128
+                frame = np.array([
+                    sum_num.reshape(nrows, ncols),
+                    sum_vx.reshape(nrows, ncols), sum_vy.reshape(nrows, ncols)
+                ])
                 yield frame
 
 
@@ -187,7 +239,7 @@ if __name__ == "__main__":
     # para = [eta, eps, rho, Lx, Ly, seed, t]
     # show_snap(para)
 
-    os.chdir("VM/snap_one")
+    os.chdir("VM")
     eta = 0.35
     eps = 0
     rho = 1
@@ -196,7 +248,16 @@ if __name__ == "__main__":
     N = 28000
     dt = 10000
     seed = 33
-    frames = read_frame(eta, eps, Lx, Ly, N, dt, seed)
+    # frames = read_frame(eta, eps, Lx, Ly, N, dt, seed)
+    # for i, frame in enumerate(frames):
+    #     para = [eta, eps, rho, Lx, Ly, seed, (i + 1) * dt]
+    #     show_snap(para, coor=frame)
+    frames = read_frame(
+        eta, eps, Lx, Ly, N, dt, seed, ncols=Lx, nrows=Ly, ff="iff")
+
     for i, frame in enumerate(frames):
-        para = [eta, eps, rho, Lx, Ly, seed, (i+1) * dt]
-        show_snap(para, coor=frame)
+        sum_num, sum_vx, sum_vy = frame
+        plt.contourf(sum_vx)
+        plt.colorbar()
+        plt.show()
+        plt.close()

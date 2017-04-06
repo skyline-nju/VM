@@ -75,6 +75,33 @@ private:
 	unsigned long long int seed;
 };
 
+class CoarseGrain
+{
+public:
+	CoarseGrain(double eta, 
+				double eps, 
+				double Lx, 
+				double Ly, 
+				int nBird,
+				unsigned long long seed,
+				const cmdline::parser &cmd,
+				bool &flag);
+	void write(const Node *bird, int nBird, int step);
+	void coarse_grain(
+		const Node *bird, int nBird, int *count, float *vx, float *vy);
+	void save_as_Bbb_format(
+		const int *_count, const float *_vx, const float *_vy);
+private:
+	std::ofstream fout;
+	int interval;
+	int ncells;
+	int ncols;
+	int nrows;
+	double lx;
+	double ly;
+	std::string format;
+};
+
 class Output
 {
 public:
@@ -88,5 +115,6 @@ private:
 	std::vector<std::function<void(const Node*, int, int)>> fout_vec;
 	OrderPara *phi;
 	oSnapshot *snap;
+	CoarseGrain *cg;
 };
 #endif
