@@ -8,30 +8,6 @@ string delimiter("\\");
 string delimiter("/");
 #endif
 
-Log::Log(
-	double eta, 
-	double eps, 
-	double rho0, 
-	double Lx, 
-	double Ly, 
-	unsigned long long seed,
-	int log_dt)
-{
-	mkdir("log");
-	char buff[100];
-	snprintf(buff, 100, 
-		"log%sl_%g_%g_%g_%g_%g_%llu.dat", 
-		delimiter.c_str(), eta, eps, rho0, Lx, Ly, seed);
-	fout.open(buff);
-	dt = log_dt;
-}
-
-void Log::out(const Node *bird, int nBird, int step)
-{
-	if (step % dt == 0)
-		cout << step << endl;
-}
-
 OrderPara::OrderPara(
 	double eta,
 	double eps, 
@@ -220,48 +196,80 @@ void iSnapshot::from_file(
 	}
 }
 
-Output::Output(
-	double eta, 
-	double eps, 
-	double rho0, 
-	double Lx, 
-	double Ly,
-	int nBird,
-	unsigned long long int seed, 
-	int nStep, 
-	int log_dt, 
-	int phi_dt, 
-	int snap_dt, 
-	const std::string snap_mode)
+Output::Output(double rho0, double Ly, int nBird, const cmdline::parser &cmd)
 {
 	using std::placeholders::_1;
 	using std::placeholders::_2;
 	using std::placeholders::_3;
+	
+	double eta = cmd.get<double>("eta");
+	double eps = cmd.get<double>("eps");
+	double Lx = cmd.get<double>("Lx");
+	unsigned long long seed = cmd.get<unsigned long long>("seed");
+	
+	time(&beg_time);
+	mkdir("log");
+	char logfile[100];
+	snprintf(logfile, 100,
+		"log%sl_%g_%g_%g_%g_%g_%llu.dat",
+		delimiter.c_str(), eta, eps, rho0, Lx, Ly, seed);
+	fout.open(logfile);
+	log_interval = cmd.get<int>("log_dt");
 
-	log = new Log(eta, eps, rho0, Lx, Ly, seed, log_dt);
-	out_vec.push_back(bind(&Log::out, log, _1, _2, _3));
-	phi = new OrderPara(eta, eps, rho0, Lx, Ly, seed, phi_dt);
-	out_vec.push_back(bind(&OrderPara::out, phi, _1, _2, _3));
+	phi = new OrderPara(eta, eps, rho0, Lx, Ly, seed, cmd.get<int>("phi_dt"));
+	fout_vec.push_back(bind(&OrderPara::out, phi, _1, _2, _3));
+
+	string snap_mode = cmd.get<string>("snap_mode");
 	if (snap_mode != "none")
 	{
-		snap = new oSnapshot(nBird, eta, eps, rho0, Lx, Ly, seed, 
-			snap_dt, snap_mode);
-		out_vec.push_back(bind(&oSnapshot::to_file, snap, _1, _2, _3));
+		int snap_dt = cmd.get<int>("snap_dt");
+		snap = new oSnapshot(
+			nBird, eta, eps, rho0, Lx, Ly, seed, snap_dt, snap_mode);
+		fout_vec.push_back(bind(&oSnapshot::to_file, snap, _1, _2, _3));
 	}
-	(*log) << "finish setting of output\n";
-}
 
+	fout << "Started at " << asctime(localtime(&beg_time));
+	fout << "Parameters:\n";
+	fout << "Particle number = " << nBird << endl;
+	fout << "density = " << rho0 << endl;
+	fout << "eta = " << eta << endl;
+	fout << "epsilon = " << eps << endl;
+	fout << "Lx = " << Lx << endl;
+	fout << "Ly = " << Ly << endl;
+	fout << "seed = " << seed << endl;
+	fout << "total time steps = " << cmd.get<int>("nstep") << endl;
+	if (cmd.exist("file"))
+		fout << "ini mode: " << cmd.get<string>("file") << endl;
+	else
+		fout << "ini mode: " << cmd.get<string>("ini_mode") << endl;
+	fout << "log dt = " << log_interval << endl;
+	fout << "phi dt = " << cmd.get<int>("phi_dt") << endl;
+	fout << "snap mode = " << snap_mode << endl;
+	fout << "snap dt = " << cmd.get<int>("snap_dt") << endl;
+	fout << endl;
+	fout << "-------- Run --------\n";
+}
 Output::~Output()
 {
-	delete[] log;
-	delete[] phi;
-	delete[] snap;
+	delete phi;
+	delete snap;
+	time_t end_time = time(nullptr);
+	fout << "Finished at " << asctime(localtime(&end_time));
+	fout.close();
 }
 
-void Output::write(const Node * bird, int nBird, int step)
+void Output::out(const Node * bird, int nBird, int step)
 {
-	for (auto out: out_vec)
+	for (auto f: fout_vec)
 	{
-		out(bird, nBird, step);
+		f(bird, nBird, step);
+	}
+	if (step % log_interval == 0)
+	{
+		double dt = difftime(time(nullptr), beg_time);
+		int hour = int(dt / 3600);
+		int min = int((dt - hour * 3600) / 60);
+		double sec = dt - hour * 3600 - min * 60;
+		fout << step << "\t" << hour << ":" << min << ":" << sec << endl;
 	}
 }

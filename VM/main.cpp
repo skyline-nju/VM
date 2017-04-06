@@ -11,13 +11,21 @@ int main(int argc, char* argv[])
 	cmd.add<double>("Lx", 'L', "system length in x direction", true);
 	cmd.add<double>("Ly", '\0', "system length in y direction", false);
 	cmd.add<int>("nstep", 'n', "total steps to run", true);
-	cmd.add<unsigned long long int>("seed", 's', "seed of random number", false, 1);
+	cmd.add<unsigned long long int>(
+		"seed", 's', "seed of random number", false, 1);
 	cmd.add<double>("rho0", '\0', "density", false);
-	cmd.add<string>("file", 'f', "filename of the input snapshot", false, "");
-	cmd.add<int>("idx_frame", '\0', "index of frame to read", false, -1);
-	cmd.add<string>("snap_mode", '\0', "mode to output snapshots", false, "one", cmdline::oneof<string>("one", "mult", "none"));
-	cmd.add<int>("snap_dt", '\0', "time interval between two snaps", false, 2000);
-	cmd.add<string>("ini_mode", 'i', "mode to initialization", false, "rand", cmdline::oneof<string>("rand", "left"));
+	cmd.add<string>("file", 'f', "input file", false, "");
+	cmd.add<int>("idx_frame", '\0', "which frame to read", false, -1);
+	cmd.add<string>("snap_mode", '\0', "mode to output snapshots", false, 
+					"one", cmdline::oneof<string>("one", "mult", "none"));
+	cmd.add<int>(
+		"snap_dt", '\0', "time interval to output snap", false, 2000);
+	cmd.add<int>(
+		"log_dt", '\0', "time interval to log", false, 100000);
+	cmd.add<int>(
+		"phi_dt", '\0', "time interval to calculate phi", false, 100);
+	cmd.add<string>("ini_mode", 'i', "initializing mode", false, 
+		"rand", cmdline::oneof<string>("rand", "left"));
 	cmd.parse_check(argc, argv);
 
 	//get parameters from cmdline
@@ -35,29 +43,19 @@ int main(int argc, char* argv[])
 	Grid *cell = Grid::ini(Node::Lx, Node::Ly);
 
 	//initial location of birds
-	Node * bird = nullptr;
+	Node *bird = nullptr;
 	ini_birds(&bird, myran, cmd);
 
 	//set output
-	Output out(eta, epsilon, Node::rho_0, Node::Lx, Node::Ly,
-		Node::N, seed, nStep, 100000, 100,
-		cmd.get<int>("snap_dt"), cmd.get<string>("snap_mode"));
+	Output out(Node::rho_0, Node::Ly, Node::N, cmd);
 
 	//link birds to cell list
 	Grid::link_nodes(cell, bird);
 
-	cout << "eta = " << eta << endl;
-	cout << "epsilon = " << epsilon << endl;
-	cout << "rho_0 = " << Node::rho_0 << endl;
-	cout << "Lx = " << Node::Lx << endl;
-	cout << "Ly = " << Node::Ly << endl;
-	cout << "seed = " << seed << endl;
-	cout << "tot steps = " << nStep << endl;
-	cout << "tot cells = " << Grid::mm << endl;
-
-	//run
+	//initialize disorder
 	double *disorder = nullptr;
 	ini_rand_torques(&disorder, Grid::mm, epsilon, seed);
+	//run
 	run(bird, cell, myran, nStep, eta, epsilon, disorder, out);
 
 }

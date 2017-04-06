@@ -72,96 +72,11 @@ Node * Node::ini_move_left(Ran *myran)
 	}
 	return bird;
 }
-
-Node * Node::ini_copy_snap(double _eta, double _eps, double _rho_0, double _Lx, double _Ly, unsigned long long _seed, int _t)
-{
-	int nrows;
-	int ncols;
-	// check the compatibility of size of input snapshot
-	if (int(Lx) % int(_Lx) == 0 && int(Ly) % int(_Ly) == 0 && rho_0 == _rho_0)
-	{
-		ncols = int(Lx) / int(_Lx);
-		nrows = int(Ly) / int(_Ly);
-	}
-	else
-	{
-		cout << "Error, the size of input snapshot is not right" << endl;
-		exit(0);
-	}
-	
-	// read snapshot
-	int _N = int(_rho_0 * _Lx * _Ly);
-	float *x = new float[_N];
-	float *y = new float[_N];
-	float *vx = new float[_N];
-	float *vy = new float[_N];
-
-	char para[100];
-	snprintf(para, 100, "%g_%g_%g_%d_%d_%llu_%08d", _eta, _eps, _rho_0, int(_Lx), int(_Ly), _seed, _t);
-	char infile[100];
-#ifdef _MSC_VER
-	snprintf(infile, 100, "snap\\s_%s.bin", para);
-#else
-	snprintf(infile, 100, "snap/s_%s.bin", para);
-#endif
-	ifstream fin(infile, ios::binary);
-	if (!fin.is_open())
-	{
-		cout << "Error, failed to open " << infile << endl;
-		exit(0);
-	}
-	else
-	{
-		float *buff = new float[3 * _N];
-		fin.read((char*)&buff[0], sizeof(float) * _N * 3);
-		fin.close();
-		for (int i = 0; i < _N; i++)
-		{
-			x[i] = buff[i * 3];
-			y[i] = buff[i * 3 + 1];
-			float theta = buff[i * 3 + 2];
-			vx[i] = cos(theta);
-			vy[i] = sin(theta);
-		}
-		delete[] buff;
-		buff = nullptr;
-	}
-
-	// initilaizing
-	N = int(rho_0 * Lx * Ly);
-	Node *bird = new Node[N];
-
-	for (int row = 0; row < nrows; row++)
-	{
-		double dy = row * _Ly;
-		for (int col = 0; col < ncols; col++)
-		{
-			double dx = col * _Lx;
-			for (int i = 0; i < _N; i++)
-			{
-				int j = i + (col + row * ncols) * _N;
-				bird[j].x = x[i] + dx;
-				bird[j].y = y[i] + dy;
-				bird[j].vx = bird[j].vx0 = vx[i];
-				bird[j].vy = bird[j].vy0 = vy[i];
-				bird[j].next = nullptr;
-			}
-		}
-	}
-	delete[] x;
-	delete[] y;
-	delete[] vx;
-	delete[] vy;
-	x = y = vx = vy = nullptr;
-	cout << "load snapshot successfully" << endl;
-	return bird;
-}
-
 Node * Node::ini_from_snap(	double Lx0, 
 							double Ly0, 
-							const std::vector<float>& x0, 
-							const std::vector<float>& y0, 
-							const std::vector<float>& theta0)
+							const vector<float>& x0, 
+							const vector<float>& y0, 
+							const vector<float>& theta0)
 {
 	int nrows;
 	int ncols;

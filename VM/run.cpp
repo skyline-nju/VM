@@ -18,7 +18,6 @@ void ini_birds(Node **p_bird, Ran *myran, const cmdline::parser &cmd)
 		double Ly;
 		isnap.from_file(cmd.get<int>("idx_frame"), Lx, Ly, x, y, theta);
 		Node::rho_0 = x.size()/ (Lx*Ly);
-		cout << "N0 = " << x.size() << endl;
 		*p_bird = Node::ini_from_snap(Lx, Ly, x, y, theta);
 		cout << "rho_0 = " << Node::rho_0 << endl;
 
@@ -92,6 +91,6 @@ void run(Node *bird, Grid *cell, Ran *myran,
 		Grid::all_pairs(cell);
 		update_coor(bird, myran, eta, epsilon, disorder);
 		Grid::refresh(cell, bird);
-		out.write(bird, Node::N, i);
+		out.out(bird, Node::N, i);
 	}
 }
