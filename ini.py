@@ -93,6 +93,28 @@ def read_frame(eta, eps, Lx, Ly, N, dt, seed, ncols=None, nrows=None, ff=None):
                 yield frame
 
 
+def get_time_step(t_end, exponent, show=False):
+    ts = [1]
+    t_cur = 1
+    while True:
+        t_cur = t_cur * exponent
+        if t_cur > t_end:
+            break
+        t_cur_int = int(np.round(t_cur))
+        if t_cur_int > ts[-1]:
+            ts.append(t_cur_int)
+    if show:
+        plt.subplot(121)
+        plt.plot(ts, "-o")
+        plt.subplot(122)
+        plt.plot(ts, "-o")
+        plt.yscale("log")
+        plt.suptitle("n = %d" % (len(ts)))
+        plt.show()
+        plt.close()
+    return ts
+
+
 def write(para: list, coor: np.ndarray):
     """ Output data to a binary file. """
     data = coor.T
@@ -239,25 +261,31 @@ if __name__ == "__main__":
     # para = [eta, eps, rho, Lx, Ly, seed, t]
     # show_snap(para)
 
-    os.chdir("VM")
-    eta = 0.35
-    eps = 0
-    rho = 1
-    Lx = 140
-    Ly = 200
-    N = 28000
-    dt = 10000
-    seed = 33
-    # frames = read_frame(eta, eps, Lx, Ly, N, dt, seed)
-    # for i, frame in enumerate(frames):
-    #     para = [eta, eps, rho, Lx, Ly, seed, (i + 1) * dt]
-    #     show_snap(para, coor=frame)
-    frames = read_frame(
-        eta, eps, Lx, Ly, N, dt, seed, ncols=Lx, nrows=Ly, ff="iff")
+    # os.chdir("VM")
+    # eta = 0.35
+    # eps = 0
+    # rho = 1
+    # Lx = 140
+    # Ly = 200
+    # N = 28000
+    # dt = 10000
+    # seed = 33
+    # f1 = read_frame(
+    #     eta, eps, Lx, Ly, N, dt, seed, ncols=Lx, nrows=Ly, ff="iff")
+    # f2 = read_frame(
+    #     eta, eps, Lx, Ly, N, dt, seed, ncols=Lx, nrows=Ly, ff="Bbb")
 
-    for i, frame in enumerate(frames):
-        sum_num, sum_vx, sum_vy = frame
-        plt.contourf(sum_vx)
-        plt.colorbar()
-        plt.show()
-        plt.close()
+    # for frame1, frame2 in zip(f1, f2):
+    #     n1, vx1, vy1 = frame1
+    #     n2, vx2, vy2 = frame2
+    #     print("vx error = %f" % (np.std(vx1 - vx2)))
+    #     print("vy error = %f" % (np.std(vy1 - vy2)))
+    #     plt.subplot(121)
+    #     plt.contourf(vy1)
+    #     plt.colorbar()
+    #     plt.subplot(122)
+    #     plt.contourf(vy2)
+    #     plt.colorbar()
+    #     plt.show()
+    #     plt.close()
+    get_time_step(500000, 1.08, show=True)
