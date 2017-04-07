@@ -31,14 +31,17 @@ void gene_lin_frames(vector<int> &frames, int dt, int t_end) {
   }
 }
 
-OrderPara::OrderPara(double eta, double eps, double rho0, double Lx, double Ly,
-                     unsigned long long seed, int phi_dt) {
+OrderPara::OrderPara(double eta, double eps, double rho0,
+                     double Lx, double Ly, 
+                     unsigned long long seed, int phi_dt, ofstream &log) {
   mkdir("phi");
   char buff[100];
   snprintf(buff, 100, "phi%sp_%g_%g_%g_%g_%g_%llu.dat",
            delimiter.c_str(), eta, eps, rho0, Lx, Ly, seed);
   fout.open(buff);
   dt = phi_dt;
+  log << "file for order parameters: " << buff << endl;
+  log << "interval for recording phi: " << dt << endl;
 }
 
 void OrderPara::out(const Node * bird, int nBird, int step) {
@@ -56,29 +59,31 @@ void OrderPara::out(const Node * bird, int nBird, int step) {
   }
 }
 
-OutSnapshot::OutSnapshot(int nBird, double _eta, double _eps, double _rho0,
-                         double _Lx, double _Ly, unsigned long long int _seed,
-                         int out_snap_dt, const std::string &out_mod) {
-  eta = _eta;
-  eps = _eps;
-  rho0 = _rho0;
-  Lx = _Lx;
-  Ly = _Ly;
-  seed = _seed;
-  out_dt = out_snap_dt;
-  if (out_mod == "one") {
+OutSnapshot::OutSnapshot(double _eta, double _eps, double _rho0,
+                         double _Lx, double _Ly, unsigned long long _seed,
+                         int nBird, const cmdline::parser &cmd,
+                         ofstream &log, bool &flag)
+    :eta(_eta), eps(_eps), rho0(_rho0), Lx(_Lx), Ly(_Ly), seed(_seed) {
+  string snap_mode = cmd.get<string>("snap_mode");
+  out_dt = cmd.get<int>("snap_dt");
+  if (snap_mode == "one") {
+    flag = true;
+    is_one_file = true;
     mkdir("snap_one");
     char filename[100];
     snprintf(filename, 100, "snap_one%sso_%g_%g_%g_%g_%d_%d_%llu.bin",
-             delimiter.c_str(), eta, eps, Lx, Ly, nBird, out_dt, seed);
-    is_one_file = true;
+      delimiter.c_str(), eta, eps, Lx, Ly, nBird, out_dt, seed);
     fout.open(filename, ios::binary);
-  } else if (out_mod == "mult") {
-    mkdir("snap");
+    log << "snapshot: " << filename << endl;
+  } else if (snap_mode == "mult") {
+    flag = true;
     is_one_file = false;
+    log << "snapshot saved in multiple files\n";
+  } else {
+    flag = false;
+    log << "no outputing snapshots\n" << endl;
   }
 }
-
 void OutSnapshot::write(const Node * bird, int nBird) {
   float *buff = new float[3 * nBird];
   for (int j = 0; j < nBird; j++) {
@@ -178,24 +183,26 @@ void InSnapshot::from_file(int idx_frame, double & _Lx, double & _Ly,
 
 CoarseGrain::CoarseGrain(double eta, double eps, double Lx, double Ly,
                          int nBird, unsigned long long seed,
-  const cmdline::parser &cmd, bool &flag) {
+                         const cmdline::parser &cmd,
+                         ofstream &log, bool &flag) {
   int dt = cmd.get<int>("cg_dt");
   double exponent = cmd.get<double>("cg_exp");
   if (dt > 0 || exponent > 0) {
     flag = true;
     set_cell_size(Lx, Ly, cmd);
     set_output(eta, eps, Lx, Ly, nBird, seed, cmd);
+    log << "coarse grain: " << filename << endl;
   } else {
     flag = false;
+    log << "coarse grain: None\n";
   }
 }
 
 void CoarseGrain::set_output(double eta, double eps, double Lx, double Ly,
                              int nBird, unsigned long long seed,
-  const cmdline::parser &cmd) {
+                             const cmdline::parser &cmd) {
   format = cmd.get<string>("cg_format");
   mkdir("coarse");
-  char filename[100];
   int dt = cmd.get<int>("cg_dt");
   if (dt > 0) {
     gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"));
@@ -214,7 +221,7 @@ void CoarseGrain::set_output(double eta, double eps, double Lx, double Ly,
 }
 
 void CoarseGrain::set_cell_size(double Lx, double Ly,
-  const cmdline::parser &cmd) {
+                                const cmdline::parser &cmd) {
   if (cmd.exist("cg_ncol")) {
     ncols = cmd.get<int>("cg_ncol");
     if (cmd.exist("cg_nrow"))
@@ -232,14 +239,15 @@ void CoarseGrain::set_cell_size(double Lx, double Ly,
     ncols = int(Lx / lx);
     nrows = int(Ly / ly);
   } else {
-    fout << "Error, need input cg_nol or cg_lx\n";
+    cout << "Error, need input cg_nol or cg_lx\n";
     exit(1);
   }
   ncells = ncols * nrows;
 }
 
 void CoarseGrain::coarse_grain(const Node *bird, int nBird,
-                  int *count, float *vx, float *vy) {
+                               int *count, float *vx, float *vy,
+                               double &svx, double &svy) const{
   for (int i = 0; i < ncells; i++) {
     count[i] = 0;
     vx[i] = 0;
@@ -253,7 +261,9 @@ void CoarseGrain::coarse_grain(const Node *bird, int nBird,
     int j = col + ncols * row;
     count[j]++;
     vx[j] += bird[i].vx;
+    svx += bird[i].vx;
     vy[j] += bird[i].vy;
+    svy += bird[i].vy;
   }
   for (int i = 0; i < ncells; i++) {
     if (count[i] > 0) {
@@ -261,6 +271,8 @@ void CoarseGrain::coarse_grain(const Node *bird, int nBird,
       vy[i] /= count[i];
     }
   }
+  svx /= nBird;
+  svy /= nBird;
 }
 
 void CoarseGrain::save_as_Bbb_format(const int *_count, const float *_vx,
@@ -298,7 +310,12 @@ void CoarseGrain::write(const Node *bird, int nBird, int step) {
     int *count = new int[ncells];
     float *vx = new float[ncells];
     float *vy = new float[ncells];
-    coarse_grain(bird, nBird, count, vx, vy);
+    double svx = 0.;
+    double svy = 0.;
+    coarse_grain(bird, nBird, count, vx, vy, svx, svy);
+    fout.write((char *)&step, sizeof(int));
+    fout.write((char *)&svx, sizeof(double));
+    fout.write((char *)&svy, sizeof(double));
     if (format == "Bbb")
       save_as_Bbb_format(count, vx, vy);
     else {
@@ -316,7 +333,7 @@ void CoarseGrain::write(const Node *bird, int nBird, int step) {
 }
 
 Output::Output(double rho0, double Ly, int nBird,
-  const cmdline::parser &cmd) {
+               const cmdline::parser &cmd) {
   using std::placeholders::_1;
   using std::placeholders::_2;
   using std::placeholders::_3;
@@ -327,51 +344,42 @@ Output::Output(double rho0, double Ly, int nBird,
   unsigned long long seed = cmd.get<unsigned long long>("seed");
 
   time(&beg_time);
-  mkdir("log");
-  char logfile[100];
-  snprintf(logfile, 100, "log%sl_%g_%g_%g_%g_%g_%llu.dat",
-    delimiter.c_str(), eta, eps, rho0, Lx, Ly, seed);
-  fout.open(logfile);
-  log_interval = cmd.get<int>("log_dt");
-
-  phi = new OrderPara(eta, eps, rho0, Lx, Ly, seed, cmd.get<int>("phi_dt"));
-  fout_vec.push_back(bind(&OrderPara::out, phi, _1, _2, _3));
-
-  string snap_mode = cmd.get<string>("snap_mode");
-  if (snap_mode != "none") {
-    int snap_dt = cmd.get<int>("snap_dt");
-    snap = new OutSnapshot(
-        nBird, eta, eps, rho0, Lx, Ly, seed, snap_dt, snap_mode);
-    fout_vec.push_back(bind(&OutSnapshot::to_file, snap, _1, _2, _3));
-  } else {
-    snap = nullptr;
-  }
-
-  bool flag;
-  cg = new CoarseGrain(eta, eps, Lx, Ly, nBird, seed, cmd, flag);
-  if (flag)
-    fout_vec.push_back(bind(&CoarseGrain::write, cg, _1, _2, _3));
-
+  ini_fout(eta, eps, rho0, Lx, Ly, seed);
+  interval = cmd.get<int>("log_dt");
   fout << "Started at " << asctime(localtime(&beg_time));
-  fout << "Parameters:\n";
-  fout << "Particle number = " << nBird << endl;
-  fout << "density = " << rho0 << endl;
-  fout << "eta = " << eta << endl;
-  fout << "epsilon = " << eps << endl;
-  fout << "Lx = " << Lx << endl;
-  fout << "Ly = " << Ly << endl;
-  fout << "seed = " << seed << endl;
-  fout << "total time steps = " << cmd.get<int>("nstep") << endl;
+  fout << "-------- Parameters --------\n";
+  fout << "Particle number: " << nBird << endl;
+  fout << "density: " << rho0 << endl;
+  fout << "eta: " << eta << endl;
+  fout << "epsilon: " << eps << endl;
+  fout << "Lx: " << Lx << endl;
+  fout << "Ly: " << Ly << endl;
+  fout << "seed: " << seed << endl;
+  fout << "total time steps: " << cmd.get<int>("nstep") << endl;  
   if (cmd.exist("file"))
     fout << "ini mode: " << cmd.get<string>("file") << endl;
   else
     fout << "ini mode: " << cmd.get<string>("ini_mode") << endl;
-  fout << "log dt = " << log_interval << endl;
-  fout << "phi dt = " << cmd.get<int>("phi_dt") << endl;
-  fout << "snap mode = " << snap_mode << endl;
-  fout << "snap dt = " << cmd.get<int>("snap_dt") << endl;
+  fout << endl;
+  fout << "-------- Output setting --------\n";
+  phi = new OrderPara(
+      eta, eps, rho0, Lx, Ly, seed, cmd.get<int>("phi_dt"), fout);
+  fout_vec.push_back(bind(&OrderPara::out, phi, _1, _2, _3));
+
+  bool flag;
+  snap = new OutSnapshot(
+      eta, eps, rho0, Lx, Ly, seed, nBird, cmd, fout, flag);
+  if (flag)
+    fout_vec.push_back(bind(&OutSnapshot::to_file, snap, _1, _2, _3));
+  cg = new CoarseGrain(eta, eps, Lx, Ly, nBird, seed, cmd, fout, flag);
+  if (flag)
+    fout_vec.push_back(bind(&CoarseGrain::write, cg, _1, _2, _3));
+
   fout << endl;
   fout << "-------- Run --------\n";
+  fout << "time step\telapsed time\n";
+  cout << "size of int: " << sizeof(int) << endl;
+  cout << "size of double: " << sizeof(double) << endl;
 }
 
 Output::~Output() {
@@ -383,11 +391,20 @@ Output::~Output() {
   fout.close();
 }
 
+void Output::ini_fout(double eta, double eps, double rho0,
+                      double Lx, double Ly, unsigned long long seed) {
+  mkdir("log");
+  char logfile[100];
+  snprintf(logfile, 100, "log%sl_%g_%g_%g_%g_%g_%llu.dat",
+           delimiter.c_str(), eta, eps, rho0, Lx, Ly, seed);
+  fout.open(logfile);
+}
+
 void Output::out(const Node * bird, int nBird, int step) {
   for (auto f : fout_vec) {
     f(bird, nBird, step);
   }
-  if (step % log_interval == 0) {
+  if (step % interval == 0) {
     double dt = difftime(time(nullptr), beg_time);
     int hour = int(dt / 3600);
     int min = int((dt - hour * 3600) / 60);

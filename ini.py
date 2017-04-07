@@ -26,6 +26,41 @@ def read(para: list) -> np.ndarray:
     return x, y, theta
 
 
+def read_coarse_grain(eta, eps, Lx, Ly, ncols, nrows, N, dt, seed, ff):
+    """ Read coarse-grained snapshot. """
+
+    file = "coarse/c%s_%g_%g_%d_%d_%d_%d_%d_%d_%d.bin" % (
+        ff, eta, eps, Lx, Ly, ncols, nrows, N, dt, seed)
+    ncell = ncols * nrows
+    if ff == "Bbb":
+        BLOCK_SIZE = 20 + ncell * 3
+        format_str = "i2d%dB%db" % (N, 2 * N)
+    elif ff == "iff":
+        BLOCK_SIZE = 20 + ncell * 3 * 4
+        format_str = "i2d%di%df" % (N, 2 * N)
+    with open(file, "rb") as f:
+        while True:
+            block = f.read(BLOCK_SIZE)
+            if not block:
+                break
+            else:
+                data = struct.unpack(format_str, block)
+                t = data[0]
+                vxm = data[1]
+                vym = data[2]
+                num_ij = np.array(data[3:3 + ncell])
+                vx_ij = np.array(data[3 + ncell:3 + 2 * ncell])
+                vy_ij = np.array(data[3 + 2 * ncell:3 + 3 * ncell])
+                if ff == "Bbb":
+                    vx_ij /= 128
+                    vy_ij /= 128
+                frame = np.array([
+                    t, vxm, vym, num_ij.reshape(nrows, ncols), vx_ij.reshape(
+                        nrows, ncols), vy_ij.reshape(nrows, ncols)
+                ])
+                yield frame
+
+
 def read_frame(eta, eps, Lx, Ly, N, dt, seed, ncols=None, nrows=None, ff=None):
     """ Read a frame from a large binary file."""
     if ncols is None:
@@ -288,4 +323,5 @@ if __name__ == "__main__":
     #     plt.colorbar()
     #     plt.show()
     #     plt.close()
-    get_time_step(500000, 1.08, show=True)
+
+
