@@ -1,3 +1,4 @@
+CXX = g++
 CPPFLAGS += -O2 -std=c++11
 # source
 SRC = $(wildcard *.cpp)
@@ -7,7 +8,7 @@ SRC_OBJ = $(SRC:.cpp=.o)
 SRC_BIN =main.out
 
 $(SRC_BIN): $(SRC_OBJ)
-	g++ -o $@ $^ $(CPPFLAGS) 
+	$(CXX) $(CPPFLAGS) -o $@ $^ 
 
 clean:
 	rm *o
