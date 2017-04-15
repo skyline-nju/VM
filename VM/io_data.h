@@ -88,10 +88,11 @@ public:
   void set_output(double eta, double eps, double Lx, double Ly, int nBird,
                   unsigned long long seed, const cmdline::parser &cmd);
   void coarse_grain(const Node *bird, int nBird,
-                    int *count, float *vx, float *vy,
-                    double &svx, double &svy) const;
+                    int *count, float *vx, float *vy) const;
+  void coarse_grain(const Node *bird, int nBird, int *count) const;
   void save_as_Bbb_format(
       const int *_count, const float *_vx, const float *_vy);
+  void save_as_B_format(const int *_count);
 private:
   std::ofstream fout;
   std::vector<int> vec_frames;

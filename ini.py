@@ -285,43 +285,12 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None):
 
 
 if __name__ == "__main__":
-    # os.chdir("VM/snap")
-    # eta = 0.35
-    # eps = 0
-    # rho = 1
-    # Lx = 140
-    # Ly = 200
-    # seed = 33
-    # t = 100000
-    # para = [eta, eps, rho, Lx, Ly, seed, t]
-    # show_snap(para)
-
-    # os.chdir("VM")
-    # eta = 0.35
-    # eps = 0
-    # rho = 1
-    # Lx = 140
-    # Ly = 200
-    # N = 28000
-    # dt = 10000
-    # seed = 33
-    # f1 = read_frame(
-    #     eta, eps, Lx, Ly, N, dt, seed, ncols=Lx, nrows=Ly, ff="iff")
-    # f2 = read_frame(
-    #     eta, eps, Lx, Ly, N, dt, seed, ncols=Lx, nrows=Ly, ff="Bbb")
-
-    # for frame1, frame2 in zip(f1, f2):
-    #     n1, vx1, vy1 = frame1
-    #     n2, vx2, vy2 = frame2
-    #     print("vx error = %f" % (np.std(vx1 - vx2)))
-    #     print("vy error = %f" % (np.std(vy1 - vy2)))
-    #     plt.subplot(121)
-    #     plt.contourf(vy1)
-    #     plt.colorbar()
-    #     plt.subplot(122)
-    #     plt.contourf(vy2)
-    #     plt.colorbar()
-    #     plt.show()
-    #     plt.close()
-
+    os.chdir("D:\\tmp")
+    for i in range(10):
+        t = (i+1) * 100000
+        para_list = [0.35, 0, 1, 180, 100, 123, t]
+        x, y, theta = read(para_list)
+        plt.plot(x, y, "o", ms=1)
+        plt.show()
+        plt.close()
 

@@ -16,11 +16,10 @@ struct Node
 
   static Node *ini_rand(Ran *myran);
   static Node *ini_move_left(Ran *myran);
-  static Node *ini_from_snap(double Lx0,
-    double Ly0,
-    const std::vector<float> &x0,
-    const std::vector<float> &y0,
-    const std::vector<float> &theta0);
+  static Node *ini_from_snap(double Lx0, double Ly0,
+                             const std::vector<float> &x0,
+                             const std::vector<float> &y0,
+                             const std::vector<float> &theta0);
   double x, y, vx, vx0, vy, vy0;
   int cell_idx;
   Node* next;

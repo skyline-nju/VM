@@ -33,8 +33,9 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("cg_exp", '\0',
                   "the exponent for generating frames in log scales",
                   false, 0);
-  cmd.add<string>(
-      "cg_format", '\0', "file format for coarse grain", false, "iff");
+  cmd.add<string>("cg_format", '\0',
+                  "file format for coarse grain", false, "iff",
+                  cmdline::oneof<string>("iff", "Bbb", "B"));
   cmd.parse_check(argc, argv);
 
   //get parameters from cmdline

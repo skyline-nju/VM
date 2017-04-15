@@ -9,6 +9,17 @@ string delimiter("\\");
 string delimiter("/");
 #endif
 
+void get_mean_velocity(const Node *bird, int nBird, double &vxm, double &vym) {
+  vxm = 0;
+  vym = 0;
+  for (int i = 0; i < nBird; i++) {
+    vxm += bird[i].vx;
+    vym += bird[i].vy;
+  }
+  vxm /= nBird;
+  vym /= nBird;
+}
+
 void gene_log_frames(vector<int> &frames, double exponent, int t_end) {
   frames.push_back(1);
   double t = 1;
@@ -46,14 +57,11 @@ OrderPara::OrderPara(double eta, double eps, double rho0,
 
 void OrderPara::out(const Node * bird, int nBird, int step) {
   if (step % dt == 0) {
-    double svx = 0;
-    double svy = 0;
-    for (int i = 0; i < nBird; i++) {
-      svx += bird[i].vx;
-      svy += bird[i].vy;
-    }
-    double phi = sqrt(svx * svx + svy * svy) / Node::N;
-    double theta = atan2(svy, svx);
+    double vxm = 0;
+    double vym = 0;
+    get_mean_velocity(bird, nBird, vxm, vym);
+    double phi = sqrt(vxm * vxm + vym * vym);
+    double theta = atan2(vym, vxm);
     fout << fixed << std::setw(16) << setprecision(10)
       << step << "\t" << phi << "\t" << theta << endl;
   }
@@ -246,8 +254,7 @@ void CoarseGrain::set_cell_size(double Lx, double Ly,
 }
 
 void CoarseGrain::coarse_grain(const Node *bird, int nBird,
-                               int *count, float *vx, float *vy,
-                               double &svx, double &svy) const{
+                               int *count, float *vx, float *vy) const{
   for (int i = 0; i < ncells; i++) {
     count[i] = 0;
     vx[i] = 0;
@@ -261,9 +268,7 @@ void CoarseGrain::coarse_grain(const Node *bird, int nBird,
     int j = col + ncols * row;
     count[j]++;
     vx[j] += bird[i].vx;
-    svx += bird[i].vx;
     vy[j] += bird[i].vy;
-    svy += bird[i].vy;
   }
   for (int i = 0; i < ncells; i++) {
     if (count[i] > 0) {
@@ -271,8 +276,21 @@ void CoarseGrain::coarse_grain(const Node *bird, int nBird,
       vy[i] /= count[i];
     }
   }
-  svx /= nBird;
-  svy /= nBird;
+}
+
+void CoarseGrain::coarse_grain(const Node *bird, int nBird,
+                               int *count) const {
+  for (int i = 0; i < ncells; i++)
+    count[i] = 0;
+  for (int i = 0; i < nBird; i++) {
+    if (bird[i].vx > 0) {
+      int col = int(bird[i].x / lx);
+      if (col < 0 || col >= ncols) col = 0;
+      int row = int(bird[i].y / ly);
+      if (row < 0 || row >= nrows) row = 0;
+      count[col + ncols * row]++;
+    }
+  }
 }
 
 void CoarseGrain::save_as_Bbb_format(const int *_count, const float *_vx,
@@ -305,27 +323,43 @@ void CoarseGrain::save_as_Bbb_format(const int *_count, const float *_vx,
   delete[] vy;
 }
 
+void CoarseGrain::save_as_B_format(const int *_count) {
+  unsigned char *count = new unsigned char[ncells];
+  for (int i = 0; i < ncells; i++) {
+    count[i] = _count[i] < 256 ? _count[i] : 257;
+  }
+  fout.write((char *)count, sizeof(unsigned char) * ncells);
+  delete[] count;
+}
+
 void CoarseGrain::write(const Node *bird, int nBird, int step) {
   if (step == vec_frames[idx_cur_frame]) {
-    int *count = new int[ncells];
-    float *vx = new float[ncells];
-    float *vy = new float[ncells];
-    double svx = 0.;
-    double svy = 0.;
-    coarse_grain(bird, nBird, count, vx, vy, svx, svy);
+    double vxm = 0;
+    double vym = 0;
+    get_mean_velocity(bird, nBird, vxm, vym);
     fout.write((char *)&step, sizeof(int));
-    fout.write((char *)&svx, sizeof(double));
-    fout.write((char *)&svy, sizeof(double));
-    if (format == "Bbb")
-      save_as_Bbb_format(count, vx, vy);
-    else {
-      fout.write((char *)count, sizeof(int) * ncells);
-      fout.write((char *)vx, sizeof(float) * ncells);
-      fout.write((char *)vy, sizeof(float) * ncells);
+    fout.write((char *)&vxm, sizeof(double));
+    fout.write((char *)&vym, sizeof(double));
+
+    int *count = new int[ncells];
+    if (format == "B") {
+      coarse_grain(bird, nBird, count);
+      save_as_B_format(count);
+    } else {
+      float *vx = new float[ncells];
+      float *vy = new float[ncells];
+      coarse_grain(bird, nBird, count, vx, vy);
+      if (format == "Bbb")
+        save_as_Bbb_format(count, vx, vy);
+      else if (format == "iff") {
+        fout.write((char *)count, sizeof(int) * ncells);
+        fout.write((char *)vx, sizeof(float) * ncells);
+        fout.write((char *)vy, sizeof(float) * ncells);
+      }
+      delete[] vx;
+      delete[] vy;
     }
     delete[] count;
-    delete[] vx;
-    delete[] vy;
     idx_cur_frame++;
     cout << "out put " << idx_cur_frame << "th frame, "
       << "time step = " << step << endl;
