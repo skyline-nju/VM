@@ -31,8 +31,8 @@ public:
   void read();
   void read_block(int idx_frame);
   void from_file(int idx_frame, double &_Lx, double &_Ly,
-    std::vector<float> &x, std::vector<float> &y,
-    std::vector<float> &theta);
+                 std::vector<float> &x, std::vector<float> &y,
+                 std::vector<float> &theta);
 private:
   std::ifstream fin;
   bool is_read_block;

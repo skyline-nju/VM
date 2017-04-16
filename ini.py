@@ -1,3 +1,9 @@
+""" Prepare the snapshot for simulation.
+
+    Generate new snapshot by coping and pasting a rectangle region of the
+    original snapshot along x or y direction. Then initialize the similation
+    from the new snapshot.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -24,108 +30,6 @@ def read(para: list) -> np.ndarray:
         data = struct.unpack("%df" % (n * 3), buff)
         x, y, theta = np.array(data, dtype=np.float32).reshape(n, 3).T
     return x, y, theta
-
-
-def read_coarse_grain(eta, eps, Lx, Ly, ncols, nrows, N, dt, seed, ff):
-    """ Read coarse-grained snapshot. """
-
-    file = "coarse/c%s_%g_%g_%d_%d_%d_%d_%d_%d_%d.bin" % (
-        ff, eta, eps, Lx, Ly, ncols, nrows, N, dt, seed)
-    ncell = ncols * nrows
-    if ff == "Bbb":
-        BLOCK_SIZE = 20 + ncell * 3
-        format_str = "i2d%dB%db" % (N, 2 * N)
-    elif ff == "iff":
-        BLOCK_SIZE = 20 + ncell * 3 * 4
-        format_str = "i2d%di%df" % (N, 2 * N)
-    with open(file, "rb") as f:
-        while True:
-            block = f.read(BLOCK_SIZE)
-            if not block:
-                break
-            else:
-                data = struct.unpack(format_str, block)
-                t = data[0]
-                vxm = data[1]
-                vym = data[2]
-                num_ij = np.array(data[3:3 + ncell])
-                vx_ij = np.array(data[3 + ncell:3 + 2 * ncell])
-                vy_ij = np.array(data[3 + 2 * ncell:3 + 3 * ncell])
-                if ff == "Bbb":
-                    vx_ij /= 128
-                    vy_ij /= 128
-                frame = np.array([
-                    t, vxm, vym, num_ij.reshape(nrows, ncols), vx_ij.reshape(
-                        nrows, ncols), vy_ij.reshape(nrows, ncols)
-                ])
-                yield frame
-
-
-def read_frame(eta, eps, Lx, Ly, N, dt, seed, ncols=None, nrows=None, ff=None):
-    """ Read a frame from a large binary file."""
-    if ncols is None:
-        file = "snap_one/so_%g_%g_%d_%d_%d_%d_%d.bin" % (eta, eps, Lx, Ly, N,
-                                                         dt, seed)
-        BLOCK_SIZE = N * 3 * 4
-        with open(file, "rb") as f:
-            while True:
-                block = f.read(BLOCK_SIZE)
-                if not block:
-                    break
-                else:
-                    frame = struct.unpack("%df" % (N * 3), block)
-                    frame = np.array(frame, dtype=np.float32).reshape(N, 3).T
-                    yield frame
-    elif ff == "iff":
-        file = "coarse/ciff_%g_%g_%d_%d_%d_%d_%d_%d_%d.bin" % (
-            eta, eps, Lx, Ly, ncols, nrows, N, dt, seed)
-        BLOCK_SIZE = N * 4
-        with open(file, "rb") as f:
-            while True:
-                block = f.read(BLOCK_SIZE)
-                if not block:
-                    break
-                else:
-                    sum_num = np.array(
-                        struct.unpack("%di" % N, block), dtype=int)
-                block = f.read(BLOCK_SIZE * 2)
-                if not block:
-                    break
-                else:
-                    sum_vx, sum_vy = np.array(
-                        struct.unpack("%df" % (2 * N), block),
-                        dtype=np.float32).reshape(2, N)
-                frame = np.array([
-                    sum_num.reshape(nrows, ncols),
-                    sum_vx.reshape(nrows, ncols), sum_vy.reshape(nrows, ncols)
-                ])
-                yield frame
-    elif ff == "Bbb":
-        file = "coarse/cBbb_%g_%g_%d_%d_%d_%d_%d_%d_%d.bin" % (
-            eta, eps, Lx, Ly, ncols, nrows, N, dt, seed)
-        BLOCK_SIZE = N
-        with open(file, "rb") as f:
-            while True:
-                block = f.read(BLOCK_SIZE)
-                if not block:
-                    break
-                else:
-                    sum_num = np.array(
-                        struct.unpack("%dB" % N, block), dtype=int)
-                block = f.read(BLOCK_SIZE * 2)
-                if not block:
-                    break
-                else:
-                    sum_vx, sum_vy = np.array(
-                        struct.unpack("%db" % (2 * N), block),
-                        dtype=np.float32).reshape(2, N)
-                sum_vx /= 128
-                sum_vy /= 128
-                frame = np.array([
-                    sum_num.reshape(nrows, ncols),
-                    sum_vx.reshape(nrows, ncols), sum_vy.reshape(nrows, ncols)
-                ])
-                yield frame
 
 
 def get_time_step(t_end, exponent, show=False):
@@ -178,69 +82,60 @@ def show_snap(para: list, **kwargs):
         plt.close()
 
 
-def replicate_x(x0, y0, theta0, n, Lx, lim=None):
+def replicate_x(x0, y0, theta0, Lx0, n, lim=None):
     """ Replicate snapshot along x direction.
 
         Parameters:
         --------
-            x0: np.ndarray
-                Original x coordinates
-            y0: np.ndarray
-                Original y coordiantes
-            theta0: np.ndarray
-                Original theta
-            n: int
-                Times to replicate
-            Lx: int
-                Original box size in x direction
-            lim: list
-                The left and right edges of band region
+        x0, y0, theta0: np.ndarray
+            Coordination and velocity angle of particles.
+        Lx0: double
+            System size in the x direction.
+        n: int
+            Times of replicating along x direction.
+        lim: list
+            The region to copy.
 
         Returns:
         --------
-            x: np.ndarray
-                New x coordinates
-            y: np.ndarray
-                New y coordinates
-            theta: np.ndarray
-                New theta
-            Lx_new: int
-                New box size in x direction
+        x, y, theta: np.ndarray
+            Coordiantion and velocity angle of new snapshot.
+        Lx: double
+            New system size in the x direction.
     """
-
     if lim is not None:
-        # filter out the band region lim[0] < x < lim[1]
-        mask = np.where((x0 < lim[0]) | (x0 > lim[1]))
-        xc = x0[mask]
-        yc = y0[mask]
-        theta_c = theta0[mask]
-        xc[xc < lim[0]] += (lim[1] - lim[0])
-        dx = lim[0] + Lx - lim[1]
+        xmin, xmax = lim
     else:
-        xc = x0
-        yc = y0
-        theta_c = theta0
-        dx = Lx
-
-    N0 = x0.size
-    Nc = xc.size
-    N = N0 + n * Nc
-    x, y, theta = np.zeros((3, N), dtype=np.float32)
-    x[:N0] = x0
-    y[:N0] = y0
-    theta[:N0] = theta0
-    Lx_new = Lx + n * dx
+        xmin, xmax = 0, Lx0
+    if xmin < xmax:
+        x0 += (Lx0 - xmax)
+        xmin += (Lx0 - xmax)
+        x0[x0 >= Lx0] -= Lx0
+    else:
+        x0 -= xmax
+        xmin -= xmax
+        x0[x0 < 0] += Lx0
+    mask = x0 >= xmin
+    xc = x0[mask]
+    yc = y0[mask]
+    theta_c = theta0[mask]
+    Lc = Lx0 - xmin
+    x, y, theta = np.zeros((3, x0.size + n * xc.size), dtype=np.float32)
+    x[:x0.size] = x0
+    y[:x0.size] = y0
+    theta[:x0.size] = theta0
+    Lx = Lx0 + n * Lc
     for i in range(n):
-        k1 = N0 + i * Nc
-        k2 = N0 + (i + 1) * Nc
-        x[k1:k2] = xc + (i + 1) * dx
+        k1 = x0.size + i * xc.size
+        k2 = x0.size + (i + 1) * xc.size
+        x[k1:k2] = xc + (i + 1) * Lc
         y[k1:k2] = yc
         theta[k1:k2] = theta_c
-    return x, y, theta, Lx_new
+    return x, y, theta, Lx
 
 
-def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None):
-    """ Replicat snapshot along x and y direction.
+def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None, out=False):
+    """ Replicate snapshot along x and y direction.
 
         Parameters:
         --------
@@ -271,26 +166,28 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None):
         x0, y0, theta0 = coor
     else:
         x0, y0, theta0 = read(para)
+    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1)
+    show_snap(para, coor=[x0, y0, theta0], ax=ax1)
     if not reverse:
-        x1, y1, theta1, Lx_new = replicate_x(x0, y0, theta0, nx, Lx, lim)
-        y2, x2, theta2, Ly_new = replicate_x(y1, x1, theta1, ny, Ly)
+        x1, y1, theta1, Lx_new = replicate_x(x0, y0, theta0, Lx, nx, lim)
+        y2, x2, theta2, Ly_new = replicate_x(y1, x1, theta1, Ly, ny)
     else:
-        y1, x1, theta1, Ly_new = replicate_x(y0, x0, theta0, ny, Ly, lim)
-        x2, y2, theta2, Lx_new = replicate_x(x1, y1, theta1, nx, Lx)
+        y1, x1, theta1, Ly_new = replicate_x(y0, x0, theta0, Ly, ny, lim)
+        x2, y2, theta2, Lx_new = replicate_x(x1, y1, theta1, Lx, nx)
     rho_new = x2.size / (Lx_new * Ly_new)
     para_new = [eta, eps, rho_new, Lx_new, Ly_new, seed, t]
     coor_new = np.array([x2, y2, theta2])
-    write(para_new, coor_new)
-    return para_new, coor_new
+    if out:
+        write(para_new, coor_new)
+    show_snap(para_new, coor=coor_new, ax=ax2)
+    plt.show()
+    plt.close()
 
 
 if __name__ == "__main__":
     os.chdir("D:\\tmp")
-    for i in range(10):
-        t = (i+1) * 100000
-        para_list = [0.35, 0, 1, 180, 100, 123, t]
-        x, y, theta = read(para_list)
-        plt.plot(x, y, "o", ms=1)
-        plt.show()
-        plt.close()
 
+    t = 8 * 100000
+    para_list = [0.35, 0.02, 1, 220, 100, 123, t]
+    replicate(para_list, 2, 0, lim=[110, 210], out=False)
+    # get_time_step(500000, 1.06, show=True)
