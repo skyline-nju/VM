@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
   double eta = cmd.get<double>("eta");
   double epsilon = cmd.get<double>("eps");
   int nStep = cmd.get<int>("nstep");
-  unsigned seed = cmd.get<unsigned long long int>("seed");
+  unsigned long long seed = cmd.get<unsigned long long int>("seed");
   Node::Lx = cmd.get<double>("Lx");
   Node::Ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : Node::Lx;
 

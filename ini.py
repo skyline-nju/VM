@@ -134,7 +134,14 @@ def replicate_x(x0, y0, theta0, Lx0, n, lim=None):
     return x, y, theta, Lx
 
 
-def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None, out=False):
+def replicate(para,
+              nx=0,
+              ny=0,
+              lim=None,
+              reverse=False,
+              coor=None,
+              out=False,
+              dis_x=0):
     """ Replicate snapshot along x and y direction.
 
         Parameters:
@@ -166,7 +173,7 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None, out=False):
         x0, y0, theta0 = coor
     else:
         x0, y0, theta0 = read(para)
-    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1)
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
     show_snap(para, coor=[x0, y0, theta0], ax=ax1)
     if not reverse:
         x1, y1, theta1, Lx_new = replicate_x(x0, y0, theta0, Lx, nx, lim)
@@ -174,6 +181,16 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None, out=False):
     else:
         y1, x1, theta1, Ly_new = replicate_x(y0, x0, theta0, Ly, ny, lim)
         x2, y2, theta2, Lx_new = replicate_x(x1, y1, theta1, Lx, nx)
+    if dis_x > 0:
+        k = dis_x / (0.5 * Ly_new)
+        for i in range(x2.size):
+            if y2[i] < 0.5 * Ly_new:
+                x2[i] += y2[i] * k
+            else:
+                x2[i] += (Ly_new - y2[i]) * k
+            if x2[i] > Lx_new:
+                x2[i] -= Lx_new
+
     rho_new = x2.size / (Lx_new * Ly_new)
     para_new = [eta, eps, rho_new, Lx_new, Ly_new, seed, t]
     coor_new = np.array([x2, y2, theta2])
@@ -185,9 +202,9 @@ def replicate(para, nx=0, ny=0, lim=None, reverse=False, coor=None, out=False):
 
 
 if __name__ == "__main__":
-    os.chdir("D:\\tmp")
+    os.chdir("VM\\snap")
 
-    t = 8 * 100000
-    para_list = [0.35, 0.02, 1, 220, 100, 123, t]
-    replicate(para_list, 2, 0, lim=[110, 210], out=False)
-    # get_time_step(500000, 1.06, show=True)
+    t = 74000
+    para_list = [0.35, 0.02, 0.623548, 620, 20, 308, t]
+    replicate(para_list, 0, 49, lim=[60, 150], out=True, dis_x=20)
+    # show_snap(para_list)
