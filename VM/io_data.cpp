@@ -26,7 +26,7 @@ void gene_log_frames(vector<int> &frames, double exponent, int t_end) {
   int cur_frame = 1;
   while (true) {
     t *= exponent;
-    if (t > t_end) break;
+    if (t >= t_end) break;
     int tmp_frame = round(t);
     if (tmp_frame > cur_frame) {
       cur_frame = tmp_frame;
@@ -37,6 +37,13 @@ void gene_log_frames(vector<int> &frames, double exponent, int t_end) {
 
 void gene_lin_frames(vector<int> &frames, int dt, int t_end) {
   for (int t = 1; t <= t_end; t++) {
+    if (t % dt == 0)
+      frames.push_back(t);
+  }
+}
+
+void gene_lin_frames(vector<int> &frames, int dt, int t_end, int t_beg) {
+  for (int t = t_beg; t <= t_end; t++) {
     if (t % dt == 0)
       frames.push_back(t);
   }
@@ -137,7 +144,7 @@ InSnapshot::InSnapshot(const string infile) {
     buff = new float[nBird * 3];
   }
   string path(folder + delimiter + infile);
-  fin.open(path, ios::binary | ios::ate);
+  fin.open(path.c_str(), ios::binary | ios::ate);
   if (!fin.is_open()) {
     cout << "Error, failed to open " << infile << endl;
     exit(1);
@@ -212,18 +219,18 @@ void CoarseGrain::set_output(double eta, double eps, double Lx, double Ly,
   format = cmd.get<string>("cg_format");
   mkdir("coarse");
   int dt = cmd.get<int>("cg_dt");
-  if (dt > 0) {
-    gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"));
-    snprintf(filename, 100, "coarse%sc%s_%g_%g_%g_%g_%d_%d_%d_%d_%llu.bin",
-             delimiter.c_str(), format.c_str(), eta, eps, Lx, Ly,
-             ncols, nrows, nBird, dt, seed);
-  } else {
-    double exponent = cmd.get<double>("cg_exp");
+  double exponent = cmd.get<double>("cg_exp");
+  if (exponent > 0 && dt > 0) {
+    gene_log_frames(vec_frames, exponent, cmd.get<int>("t_equil"));
+    gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"), cmd.get<int>("t_equil"));
+  } else if (exponent > 0) {
     gene_log_frames(vec_frames, exponent, cmd.get<int>("nstep"));
-    snprintf(filename, 100, "coarse%sc%s_%g_%g_%g_%g_%d_%d_%d_%g_%llu.bin",
-             delimiter.c_str(), format.c_str(), eta, eps, Lx, Ly,
-             ncols, nrows, nBird, exponent, seed);
+  } else {
+    gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"), cmd.get<int>("t_equil"));
   }
+  snprintf(filename, 100, "coarse%sc%s_%g_%g_%g_%g_%d_%d_%d_%llu.bin",
+           delimiter.c_str(), format.c_str(), eta, eps, Lx, Ly,
+           ncols, nrows, nBird, seed);
   fout.open(filename, ios::binary);
   idx_cur_frame = 0;
 }
@@ -332,12 +339,24 @@ void CoarseGrain::save_as_B_format(const int *_count) {
   delete[] count;
 }
 
+void CoarseGrain::save_as_Hff_format(const int * _count,
+                                     const float * _vx, const float * _vy) {
+  unsigned short *count = new unsigned short[ncells];
+  for (int i = 0; i < ncells; i++) {
+    count[i] = _count[i];
+  }
+  fout.write((char *)count, sizeof(unsigned short) * ncells);
+  fout.write((char *)_vx, sizeof(float) * ncells);
+  fout.write((char *)_vy, sizeof(float) * ncells);
+  delete[] count;
+}
+
 void CoarseGrain::write(const Node *bird, int nBird, int step) {
   if (step == vec_frames[idx_cur_frame]) {
+    fout.write((char *)&step, sizeof(int));
     double vxm = 0;
     double vym = 0;
     get_mean_velocity(bird, nBird, vxm, vym);
-    fout.write((char *)&step, sizeof(int));
     fout.write((char *)&vxm, sizeof(double));
     fout.write((char *)&vym, sizeof(double));
 
@@ -351,6 +370,9 @@ void CoarseGrain::write(const Node *bird, int nBird, int step) {
       coarse_grain(bird, nBird, count, vx, vy);
       if (format == "Bbb")
         save_as_Bbb_format(count, vx, vy);
+      else if (format == "Hff") {
+        save_as_Hff_format(count, vx, vy);
+      }
       else if (format == "iff") {
         fout.write((char *)count, sizeof(int) * ncells);
         fout.write((char *)vx, sizeof(float) * ncells);

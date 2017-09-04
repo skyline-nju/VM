@@ -93,6 +93,7 @@ public:
   void save_as_Bbb_format(
       const int *_count, const float *_vx, const float *_vy);
   void save_as_B_format(const int *_count);
+  void save_as_Hff_format(const int *_count, const float *_vx, const float *_vy);
 private:
   std::ofstream fout;
   std::vector<int> vec_frames;

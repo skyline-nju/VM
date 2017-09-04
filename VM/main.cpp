@@ -25,6 +25,7 @@ int main(int argc, char* argv[]) {
       "phi_dt", '\0', "time interval to calculate phi", false, 100);
   cmd.add<string>("ini_mode", 'i', "initializing mode", false,
                   "rand", cmdline::oneof<string>("rand", "left"));
+  cmd.add<int>("t_equil", '\0', "time to reach equilibrium state", false, 100000);
   cmd.add<int>("cg_dt", '\0', "time interval to coarse grain", false, 0);
   cmd.add<int>("cg_ncol", '\0', "number of cols for coarse grain", false);
   cmd.add<int>("cg_nrow", '\0', "number of rows for coarse grain", false);
@@ -35,7 +36,7 @@ int main(int argc, char* argv[]) {
                   false, 0);
   cmd.add<string>("cg_format", '\0',
                   "file format for coarse grain", false, "iff",
-                  cmdline::oneof<string>("iff", "Bbb", "B"));
+                  cmdline::oneof<string>("iff", "Hff", "Bbb", "B"));
   cmd.parse_check(argc, argv);
 
   //get parameters from cmdline
