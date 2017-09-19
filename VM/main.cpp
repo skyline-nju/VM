@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
   cmd.add<string>("cg_format", '\0',
                   "file format for coarse grain", false, "iff",
                   cmdline::oneof<string>("iff", "Hff", "Bbb", "B"));
+  cmd.add("cg_win", '\0', "generate frames in block");
   cmd.parse_check(argc, argv);
 
   //get parameters from cmdline

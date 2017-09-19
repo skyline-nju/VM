@@ -49,6 +49,24 @@ void gene_lin_frames(vector<int> &frames, int dt, int t_end, int t_beg) {
   }
 }
 
+void gene_log_frames_with_log_win(vector<int> &frames) {
+  int t_mid = 25;
+  int win = 1;
+  frames.push_back(t_mid);
+  for (int i = 1; i <= 7; i++) {
+    t_mid *= 2;
+    if (i > 1) win *= 2;
+    if (win == 1) {
+      frames.push_back(t_mid);
+    } else {
+      for (int j = -win / 2; j < win / 2; j++) {
+        frames.push_back(t_mid + j);
+      }
+    }
+  }
+
+}
+
 OrderPara::OrderPara(double eta, double eps, double rho0,
                      double Lx, double Ly, 
                      unsigned long long seed, int phi_dt, ofstream &log) {
@@ -202,7 +220,7 @@ CoarseGrain::CoarseGrain(double eta, double eps, double Lx, double Ly,
                          ofstream &log, bool &flag) {
   int dt = cmd.get<int>("cg_dt");
   double exponent = cmd.get<double>("cg_exp");
-  if (dt > 0 || exponent > 0) {
+  if (dt > 0 || exponent > 0 || cmd.exist("cg_win")) {
     flag = true;
     set_cell_size(Lx, Ly, cmd);
     set_output(eta, eps, Lx, Ly, nBird, seed, cmd);
@@ -225,8 +243,13 @@ void CoarseGrain::set_output(double eta, double eps, double Lx, double Ly,
     gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"), cmd.get<int>("t_equil"));
   } else if (exponent > 0) {
     gene_log_frames(vec_frames, exponent, cmd.get<int>("nstep"));
-  } else {
+  } else if (dt > 0){
     gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"), cmd.get<int>("t_equil"));
+  } else {
+    gene_log_frames_with_log_win(vec_frames);
+    for (auto i : vec_frames) {
+      cout << i << endl;
+    }
   }
   snprintf(filename, 100, "coarse%sc%s_%g_%g_%g_%g_%d_%d_%d_%llu.bin",
            delimiter.c_str(), format.c_str(), eta, eps, Lx, Ly,
