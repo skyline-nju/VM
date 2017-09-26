@@ -55,16 +55,11 @@ void gene_log_frames_with_log_win(vector<int> &frames) {
   frames.push_back(t_mid);
   for (int i = 1; i <= 7; i++) {
     t_mid *= 2;
-    if (i > 1) win *= 2;
-    if (win == 1) {
-      frames.push_back(t_mid);
-    } else {
-      for (int j = -win / 2; j < win / 2; j++) {
-        frames.push_back(t_mid + j);
-      }
+    win *= 2;
+    for (int j = -win / 2; j < win / 2; j++) {
+      frames.push_back(t_mid + j);
     }
   }
-
 }
 
 OrderPara::OrderPara(double eta, double eps, double rho0,
@@ -214,16 +209,14 @@ void InSnapshot::from_file(int idx_frame, double & _Lx, double & _Ly,
   }
 }
 
-CoarseGrain::CoarseGrain(double eta, double eps, double Lx, double Ly,
-                         int nBird, unsigned long long seed,
-                         const cmdline::parser &cmd,
+CoarseGrain::CoarseGrain(int nBird, const cmdline::parser &cmd,
                          ofstream &log, bool &flag) {
   int dt = cmd.get<int>("cg_dt");
   double exponent = cmd.get<double>("cg_exp");
   if (dt > 0 || exponent > 0 || cmd.exist("cg_win")) {
     flag = true;
-    set_cell_size(Lx, Ly, cmd);
-    set_output(eta, eps, Lx, Ly, nBird, seed, cmd);
+    set_box_size(cmd);
+    set_output(cmd, nBird);
     log << "coarse grain: " << filename << endl;
   } else {
     flag = false;
@@ -231,9 +224,7 @@ CoarseGrain::CoarseGrain(double eta, double eps, double Lx, double Ly,
   }
 }
 
-void CoarseGrain::set_output(double eta, double eps, double Lx, double Ly,
-                             int nBird, unsigned long long seed,
-                             const cmdline::parser &cmd) {
+void CoarseGrain::set_output(const cmdline::parser &cmd, int nBird) {
   format = cmd.get<string>("cg_format");
   mkdir("coarse");
   int dt = cmd.get<int>("cg_dt");
@@ -252,14 +243,16 @@ void CoarseGrain::set_output(double eta, double eps, double Lx, double Ly,
     }
   }
   snprintf(filename, 100, "coarse%sc%s_%g_%g_%g_%g_%d_%d_%d_%llu.bin",
-           delimiter.c_str(), format.c_str(), eta, eps, Lx, Ly,
-           ncols, nrows, nBird, seed);
+           delimiter.c_str(), format.c_str(), cmd.get<double>("eta"),
+           cmd.get<double>("eps"), cmd.get<double>("Lx"), cmd.get<double>("Ly"),
+           ncols, nrows, nBird, cmd.get<unsigned long long int>("seed"));
   fout.open(filename, ios::binary);
   idx_cur_frame = 0;
 }
 
-void CoarseGrain::set_cell_size(double Lx, double Ly,
-                                const cmdline::parser &cmd) {
+void CoarseGrain::set_box_size(const cmdline::parser &cmd) {
+  double Lx = cmd.get<double>("Lx");
+  double Ly = cmd.get<double>("Ly");
   if (cmd.exist("cg_ncol")) {
     ncols = cmd.get<int>("cg_ncol");
     if (cmd.exist("cg_nrow"))
@@ -283,97 +276,6 @@ void CoarseGrain::set_cell_size(double Lx, double Ly,
   ncells = ncols * nrows;
 }
 
-void CoarseGrain::coarse_grain(const Node *bird, int nBird,
-                               int *count, float *vx, float *vy) const{
-  for (int i = 0; i < ncells; i++) {
-    count[i] = 0;
-    vx[i] = 0;
-    vy[i] = 0;
-  }
-  for (int i = 0; i < nBird; i++) {
-    int col = int(bird[i].x / lx);
-    if (col < 0 || col >= ncols) col = 0;
-    int row = int(bird[i].y / ly);
-    if (row < 0 || row >= nrows) row = 0;
-    int j = col + ncols * row;
-    count[j]++;
-    vx[j] += bird[i].vx;
-    vy[j] += bird[i].vy;
-  }
-  for (int i = 0; i < ncells; i++) {
-    if (count[i] > 0) {
-      vx[i] /= count[i];
-      vy[i] /= count[i];
-    }
-  }
-}
-
-void CoarseGrain::coarse_grain(const Node *bird, int nBird,
-                               int *count) const {
-  for (int i = 0; i < ncells; i++)
-    count[i] = 0;
-  for (int i = 0; i < nBird; i++) {
-    if (bird[i].vx > 0) {
-      int col = int(bird[i].x / lx);
-      if (col < 0 || col >= ncols) col = 0;
-      int row = int(bird[i].y / ly);
-      if (row < 0 || row >= nrows) row = 0;
-      count[col + ncols * row]++;
-    }
-  }
-}
-
-void CoarseGrain::save_as_Bbb_format(const int *_count, const float *_vx,
-                                     const float *_vy) {
-  unsigned char *count = new unsigned char[ncells];
-  signed char *vx = new signed char[ncells];
-  signed char *vy = new signed char[ncells];
-  for (int i = 0; i < ncells; i++) {
-    count[i] = _count[i] < 256 ? _count[i] : 257;
-    int ux = round(_vx[i] * 128);
-    if (ux >= 128)
-      vx[i] = 127;
-    else if (ux < -128)
-      vx[i] = -128;
-    else
-      vx[i] = ux;
-    int uy = round(_vy[i] * 128);
-    if (uy >= 128)
-      vy[i] = 127;
-    else if (uy < -128)
-      vy[i] = -128;
-    else
-      vy[i] = uy;
-  }
-  fout.write((char *)count, sizeof(unsigned char) * ncells);
-  fout.write((char *)vx, sizeof(signed char) * ncells);
-  fout.write((char *)vy, sizeof(signed char) * ncells);
-  delete[] count;
-  delete[] vx;
-  delete[] vy;
-}
-
-void CoarseGrain::save_as_B_format(const int *_count) {
-  unsigned char *count = new unsigned char[ncells];
-  for (int i = 0; i < ncells; i++) {
-    count[i] = _count[i] < 256 ? _count[i] : 257;
-  }
-  fout.write((char *)count, sizeof(unsigned char) * ncells);
-  delete[] count;
-}
-
-void CoarseGrain::save_as_Hff_format(const int * _count,
-                                     const float * _vx, const float * _vy) {
-  unsigned short *count = new unsigned short[ncells];
-  for (int i = 0; i < ncells; i++) {
-    count[i] = _count[i];
-  }
-  fout.write((char *)count, sizeof(unsigned short) * ncells);
-  fout.write((char *)_vx, sizeof(float) * ncells);
-  fout.write((char *)_vy, sizeof(float) * ncells);
-  delete[] count;
-}
-
 void CoarseGrain::write(const Node *bird, int nBird, int step) {
   if (step == vec_frames[idx_cur_frame]) {
     fout.write((char *)&step, sizeof(int));
@@ -383,31 +285,97 @@ void CoarseGrain::write(const Node *bird, int nBird, int step) {
     fout.write((char *)&vxm, sizeof(double));
     fout.write((char *)&vym, sizeof(double));
 
-    int *count = new int[ncells];
     if (format == "B") {
-      coarse_grain(bird, nBird, count);
-      save_as_B_format(count);
-    } else {
+      unsigned char *num = new unsigned char[ncells];
+      coarse_grain(bird, nBird, num, ncells, ncols, nrows, lx, ly, false);
+      fout.write((char *)num, sizeof(unsigned char) * ncells);
+      delete[] num;
+    } else if (format == "Hff") {
+      unsigned short *num = new unsigned short[ncells];
       float *vx = new float[ncells];
       float *vy = new float[ncells];
-      coarse_grain(bird, nBird, count, vx, vy);
-      if (format == "Bbb")
-        save_as_Bbb_format(count, vx, vy);
-      else if (format == "Hff") {
-        save_as_Hff_format(count, vx, vy);
-      }
-      else if (format == "iff") {
-        fout.write((char *)count, sizeof(int) * ncells);
-        fout.write((char *)vx, sizeof(float) * ncells);
-        fout.write((char *)vy, sizeof(float) * ncells);
-      }
+      coarse_grain(bird, nBird, num, vx, vy, ncells, ncols, nrows, lx, ly);
+      fout.write((char *)num, sizeof(unsigned short) * ncells);
+      fout.write((char *)vx, sizeof(float) * ncells);
+      fout.write((char *)vy, sizeof(float) * ncells);
+      delete[] num;
       delete[] vx;
       delete[] vy;
     }
-    delete[] count;
     idx_cur_frame++;
     cout << "out put " << idx_cur_frame << "th frame, "
       << "time step = " << step << endl;
+  }
+}
+
+Corr_r::Corr_r(const cmdline::parser &cmd, int nBird) :
+               lBox(cmd.get<double>("lBox")),
+               ncols(cmd.get<double>("Lx") / cmd.get<double>("lBox")) {
+  corr2d = new SpatialCorr2d(ncols, ncols, cmd.get<double>("Lx"), cmd.get<double>("Ly"));
+  circle_ave = new CircleAverage(ncols, ncols, lBox, r);
+  c_rho_r = NULL;
+  c_v_r = NULL;
+  double Lx = cmd.get<double>("Lx");
+  int ncols = int(Lx / cmd.get<double>("lBox"));
+  ncells = ncols * ncols;
+  mkdir("corr_r");
+  char file[100];
+  double rho0 = nBird / (cmd.get<double>("Lx") * cmd.get<double>("Ly"));
+  frames.push_back(25);
+  frames.push_back(50);
+  frames.push_back(100);
+  frames.push_back(200);
+  frames.push_back(400);
+  frames.push_back(800);
+  frames.push_back(1600);
+  frames.push_back(3200);
+
+  iter = frames.begin();
+  snprintf(file, 100, "corr_r%scr_%g_%g_%g_%g_%g_%llu_%d_%d.bin",
+           delimiter.c_str(), cmd.get<double>("eta"), cmd.get<double>("eps"),
+           rho0, Lx, Lx / ncols, cmd.get<unsigned long long int>("seed"),
+           r.size(), frames.size());
+  fout.open(file, ios::binary);
+  fout.write((char*)&r[0], sizeof(double) * r.size());
+}
+
+Corr_r::~Corr_r() {
+  fout.close();
+}
+
+void Corr_r::instant(const Node * bird, int nBird) {
+  int *num = new int[ncells];
+  double *vx = new double[ncells];
+  double *vy = new double[ncells];
+  int nrows = ncols;
+  coarse_grain(bird, nBird, num, vx, vy, ncells, ncols, nrows, lBox, lBox);
+
+  double *c_rho = (double *)fftw_malloc(sizeof(double) * ncells);
+  double *c_v = (double *)fftw_malloc(sizeof(double) * ncells);
+  corr2d->eval(num, vx, vy, c_rho, c_v, rho_m, vx_m, vy_m);
+  circle_ave->eval(c_rho, c_rho_r);
+  circle_ave->eval(c_v, c_v_r);
+  delete[] num;
+  delete[] vx;
+  delete[] vy;
+  fftw_free(c_rho);
+  fftw_free(c_v);
+}
+
+void Corr_r::output(const Node * bird, int nBird, int t) {
+  if (t == *iter) {
+    c_rho_r = new double[r.size()];
+    c_v_r = new double[r.size()];
+    instant(bird, nBird);
+    fout.write((char *)&t, sizeof(int));
+    fout.write((char *)&rho_m, sizeof(double));
+    fout.write((char *)&vx_m, sizeof(double));
+    fout.write((char *)&vy_m, sizeof(double));
+    fout.write((char *)c_rho_r, sizeof(double) * r.size());
+    fout.write((char *)c_v_r, sizeof(double) * r.size());
+    delete[] c_rho_r;
+    delete[] c_v_r;
+    ++iter;
   }
 }
 
@@ -450,9 +418,13 @@ Output::Output(double rho0, double Ly, int nBird,
       eta, eps, rho0, Lx, Ly, seed, nBird, cmd, fout, flag);
   if (flag)
     fout_vec.push_back(bind(&OutSnapshot::to_file, snap, _1, _2, _3));
-  cg = new CoarseGrain(eta, eps, Lx, Ly, nBird, seed, cmd, fout, flag);
+  cg = new CoarseGrain(nBird, cmd, fout, flag);
   if (flag)
     fout_vec.push_back(bind(&CoarseGrain::write, cg, _1, _2, _3));
+  if (cmd.get<double>("lBox") > 0) {
+    cr = new Corr_r(cmd, nBird);
+    fout_vec.push_back(bind(&Corr_r::output, cr, _1, _2, _3));
+  }
 
   fout << endl;
   fout << "-------- Run --------\n";

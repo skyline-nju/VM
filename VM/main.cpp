@@ -35,9 +35,10 @@ int main(int argc, char* argv[]) {
                   "the exponent for generating frames in log scales",
                   false, 0);
   cmd.add<string>("cg_format", '\0',
-                  "file format for coarse grain", false, "iff",
-                  cmdline::oneof<string>("iff", "Hff", "Bbb", "B"));
+                  "file format for coarse grain", false, "Hff",
+                  cmdline::oneof<string>("Hff", "B"));
   cmd.add("cg_win", '\0', "generate frames in block");
+  cmd.add<double>("lBox", '\0', "Box size to calculate correlation", false, 0);
   cmd.parse_check(argc, argv);
 
   //get parameters from cmdline

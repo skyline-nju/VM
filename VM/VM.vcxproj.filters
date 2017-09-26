@@ -36,6 +36,9 @@
     <ClInclude Include="io_data.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="spatial_corr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="grid.cpp">
@@ -54,6 +57,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="io_data.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="spatial_corr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

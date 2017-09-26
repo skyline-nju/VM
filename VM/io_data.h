@@ -5,6 +5,7 @@
 #include <ctime>
 #include "node.h"
 #include "cmdline.h"
+#include "spatial_corr.h"
 
 class OrderPara
 {
@@ -71,41 +72,55 @@ private:
 };
 
 
+// output coarse-grained snapshots
 class CoarseGrain
 {
 public:
-  CoarseGrain(double eta,
-              double eps,
-              double Lx,
-              double Ly,
-              int nBird,
-              unsigned long long seed,
-              const cmdline::parser &cmd,
-              std::ofstream &log,
-              bool &flag);
+  CoarseGrain(int nBird, const cmdline::parser &cmd,
+              std::ofstream &log, bool &flag);
   void write(const Node *bird, int nBird, int step);
-  void set_cell_size(double Lx, double Ly, const cmdline::parser &cmd);
-  void set_output(double eta, double eps, double Lx, double Ly, int nBird,
-                  unsigned long long seed, const cmdline::parser &cmd);
-  void coarse_grain(const Node *bird, int nBird,
-                    int *count, float *vx, float *vy) const;
-  void coarse_grain(const Node *bird, int nBird, int *count) const;
-  void save_as_Bbb_format(
-      const int *_count, const float *_vx, const float *_vy);
-  void save_as_B_format(const int *_count);
-  void save_as_Hff_format(const int *_count, const float *_vx, const float *_vy);
+  void set_box_size(const cmdline::parser &cmd);
+  void set_output(const cmdline::parser &cmd, int nBird);
+
 private:
   std::ofstream fout;
   std::vector<int> vec_frames;
   std::string format;
   char filename[100];
   int idx_cur_frame;
-  int ncells;
+  size_t ncells;
   int ncols;
   int nrows;
   double lx;
   double ly;
 };
+
+
+// output correlation functions of density and velocity averaged spherially
+class Corr_r
+{
+public:
+  Corr_r(const cmdline::parser &cmd, int nBird);
+  ~Corr_r();
+  void instant(const Node *bird, int nBird);
+  void output(const Node *bird, int nBird, int t);
+private:
+  std::ofstream fout;
+  std::vector<int> frames;
+  std::vector<int>::iterator iter;
+  std::vector<double> r;
+  SpatialCorr2d *corr2d;
+  CircleAverage *circle_ave;
+  double lBox;
+  int ncols;
+  size_t ncells;
+  double *c_rho_r;
+  double *c_v_r;
+  double rho_m;
+  double vx_m;
+  double vy_m;
+};
+
 
 class Output
 {
@@ -123,5 +138,50 @@ private:
   OrderPara *phi;
   OutSnapshot *snap;
   CoarseGrain *cg;
+  Corr_r *cr;
 };
+
+template <typename T1, typename T2>
+void coarse_grain(const Node *bird, int nBird, T1 * num, T2 * vx, T2 * vy,
+                  size_t ncells, int ncols, int nrows, double lx, double ly) {
+  for (size_t i = 0; i < ncells; i++) {
+    num[i] = 0;
+    vx[i] = 0;
+    vy[i] = 0;
+  }
+  for (unsigned int i = 0; i < nBird; i++) {
+    int col = int(bird[i].x / lx);
+    if (col < 0 || col >= ncols) col = 0;
+    int row = int(bird[i].y / ly);
+    if (row < 0 || row >= nrows) row = 0;
+    int j = col + ncols * row;
+    num[j]++;
+    vx[j] += bird[i].vx;
+    vy[j] += bird[i].vy;
+  }
+  for (size_t i = 0; i < ncells; i++) {
+    if (num[i] > 0) {
+      vx[i] /= num[i];
+      vy[i] /= num[i];
+    }
+  }
+}
+
+template <typename T>
+void coarse_grain(const Node *bird, int nBird, T *num,
+                  size_t ncells, int ncols, int nrows, double lx, double ly,
+                  bool flag_filter) {
+  for (size_t i = 0; i < ncells; i++) {
+    num[i] = 0;
+  }
+  for (unsigned i = 0; i < nBird; i++) {
+    if (!flag_filter || bird[i].vx > 0) {
+      int col = int(bird[i].x / lx);
+      if (col < 0 || col >= ncols) col = 0;
+      int row = int(bird[i].y / ly);
+      if (row < 0 || row >= nrows) row = 0;
+      num[col + ncols* row]++;
+    }
+  }
+}
 #endif
