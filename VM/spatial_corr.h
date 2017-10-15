@@ -15,6 +15,7 @@ public:
   AutoCorr2d(int _nrow, int _ncol);
   ~AutoCorr2d();
   void autocorr2(double * in_new, double * out_new);
+  void autocorr2(double * in_new, double * out_new, double *Sk);
 private:
   int ntot;
   int ntot_complex;
@@ -33,6 +34,9 @@ public:
   SpatialCorr2d(int ncols0, int nrows0, double Lx, double Ly);
   void eval(const int *num, const double *vx, const double *vy,
             double *c_rho, double *c_v,
+            double &rho_m, double &vx_m, double &vy_m);
+  void eval(const int *num, const double *vx, const double *vy,
+            double *c_rho, double *c_v, double *s_rho, double *s_v,
             double &rho_m, double &vx_m, double &vy_m);
 private:
   int ncols;

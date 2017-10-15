@@ -33,6 +33,19 @@ void AutoCorr2d::autocorr2(double * in_new, double * out_new) {
   }
 }
 
+void AutoCorr2d::autocorr2(double * in_new, double * out_new, double *Sk) {
+  fftw_execute_dft_r2c(fft, in_new, inter);
+  for (int i = 0; i < ntot_complex; i++) {
+    inter[i][0] = inter[i][0] * inter[i][0] + inter[i][1] * inter[i][1];
+    inter[i][1] = 0.0;
+    Sk[i] = inter[i][0];
+  }
+  fftw_execute_dft_c2r(rfft, inter, out_new);
+  for (size_t i = 0; i < ntot; i++) {
+    out_new[i] /= ntot;
+  }
+}
+
 
 SpatialCorr2d::SpatialCorr2d(int ncols0, int nrows0, double Lx, double Ly) :
                              ncols(ncols0), nrows(nrows0),
@@ -84,6 +97,51 @@ void SpatialCorr2d::eval(const int *num, const double *vx, const double *vy,
   fftw_free(c_vy);
 }
 
+void SpatialCorr2d::eval(const int *num, const double *vx, const double *vy,
+                         double *c_rho, double *c_v, double *s_rho, double *s_v,
+                         double &rho_m, double &vx_m, double &vy_m) {
+  rho_m = 0;
+  vx_m = vy_m = 0;  // velocity averaged over all particles
+  double *rho = (double *)fftw_malloc(sizeof(double) * ncells);
+  for (size_t i = 0; i < ncells; i++) {
+    rho[i] = num[i] / dA;
+    rho_m += rho[i];
+  }
+  autocorr2(rho, c_rho, s_rho);
+
+  double *v_tmp = (double *)fftw_malloc(sizeof(double) * ncells);
+  for (size_t i = 0; i < ncells; i++) {
+    v_tmp[i] = vx[i] * rho[i];
+    vx_m += v_tmp[i] * dA;
+  }
+  double *c_vx = (double *)fftw_malloc(sizeof(double) * ncells);
+  double *s_vx = new double[ncells];
+  autocorr2(v_tmp, c_vx, s_vx);
+
+  for (size_t i = 0; i < ncells; i++) {
+    v_tmp[i] = vy[i] * rho[i];
+    vy_m += v_tmp[i] * dA;
+  }
+  double *c_vy = (double *)fftw_malloc(sizeof(double) * ncells);
+  double *s_vy = new double[ncells];
+  autocorr2(v_tmp, c_vy, s_vy);
+
+  rho_m /= ncells;
+  vx_m /= (rho_m * ncells);
+  vy_m /= (rho_m * ncells);
+  for (size_t i = 0; i < ncells; i++) {
+    c_rho[i] /= ncells;
+    c_v[i] = (c_vx[i] + c_vy[i]) / (c_rho[i] * ncells);
+    s_v[i] = (s_vx[i] + s_vy[i]);
+  }
+  delete[] s_vx;
+  delete[] s_vy;
+  fftw_free(rho);
+  fftw_free(v_tmp);
+  fftw_free(c_vx);
+  fftw_free(c_vy);
+
+}
 CircleAverage::CircleAverage(int _ncols, int _nrows, double l, vector<double> &r_arr):
                              ncols(_ncols), nrows(_nrows) {
   half_nrows = nrows / 2;
@@ -109,10 +167,8 @@ CircleAverage::CircleAverage(int _ncols, int _nrows, double l, vector<double> &r
     }
     }
   }
-  //r.reserve(dict_count.size());
-  //count.reserve(dict_count.size());
 
-  R_thresh = l * 10;
+  R_thresh = 10;
   RR_thresh = R_thresh * R_thresh;
   int r_ceiling = R_thresh;
   int rr_ceiling = RR_thresh;

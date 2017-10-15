@@ -116,9 +116,12 @@ private:
   size_t ncells;
   double *c_rho_r;
   double *c_v_r;
+  double *sk_rho;
+  double *sk_v;
   double rho_m;
   double vx_m;
   double vy_m;
+  bool flag_sk;
 };
 
 

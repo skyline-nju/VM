@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
                   "file format for coarse grain", false, "Hff",
                   cmdline::oneof<string>("Hff", "B"));
   cmd.add("cg_win", '\0', "generate frames in block");
+  cmd.add("Sk", '\0', "calculate structure factor");
   cmd.add<double>("lBox", '\0', "Box size to calculate correlation", false, 0);
   cmd.parse_check(argc, argv);
 

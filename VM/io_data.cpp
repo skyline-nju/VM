@@ -35,17 +35,11 @@ void gene_log_frames(vector<int> &frames, double exponent, int t_end) {
   }
 }
 
-void gene_lin_frames(vector<int> &frames, int dt, int t_end) {
-  for (int t = 1; t <= t_end; t++) {
-    if (t % dt == 0)
-      frames.push_back(t);
-  }
-}
-
-void gene_lin_frames(vector<int> &frames, int dt, int t_end, int t_beg) {
-  for (int t = t_beg; t <= t_end; t++) {
-    if (t % dt == 0)
-      frames.push_back(t);
+void gene_log_frames(vector<int> &frames, double exponent, int t_beg, int t_end) {
+  int t = t_beg;
+  while (t <= t_end) {
+    frames.push_back(t);
+    t *= exponent;
   }
 }
 
@@ -61,6 +55,21 @@ void gene_log_frames_with_log_win(vector<int> &frames) {
     }
   }
 }
+
+void gene_lin_frames(vector<int> &frames, int dt, int t_end) {
+  for (int t = 1; t <= t_end; t++) {
+    if (t % dt == 0)
+      frames.push_back(t);
+  }
+}
+
+void gene_lin_frames(vector<int> &frames, int dt, int t_end, int t_beg) {
+  for (int t = t_beg; t <= t_end; t++) {
+    if (t % dt == 0)
+      frames.push_back(t);
+  }
+}
+
 
 OrderPara::OrderPara(double eta, double eps, double rho0,
                      double Lx, double Ly, 
@@ -233,7 +242,7 @@ void CoarseGrain::set_output(const cmdline::parser &cmd, int nBird) {
     gene_log_frames(vec_frames, exponent, cmd.get<int>("t_equil"));
     gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"), cmd.get<int>("t_equil"));
   } else if (exponent > 0) {
-    gene_log_frames(vec_frames, exponent, cmd.get<int>("nstep"));
+    gene_log_frames(vec_frames, exponent, 25, cmd.get<int>("nstep"));
   } else if (dt > 0){
     gene_lin_frames(vec_frames, dt, cmd.get<int>("nstep"), cmd.get<int>("t_equil"));
   } else {
@@ -315,26 +324,38 @@ Corr_r::Corr_r(const cmdline::parser &cmd, int nBird) :
   circle_ave = new CircleAverage(ncols, ncols, lBox, r);
   c_rho_r = NULL;
   c_v_r = NULL;
+  sk_rho = NULL;
+  sk_v = NULL;
   double Lx = cmd.get<double>("Lx");
   int ncols = int(Lx / cmd.get<double>("lBox"));
   ncells = ncols * ncols;
   mkdir("corr_r");
   char file[100];
   double rho0 = nBird / (cmd.get<double>("Lx") * cmd.get<double>("Ly"));
-  frames.push_back(25);
-  frames.push_back(50);
-  frames.push_back(100);
-  frames.push_back(200);
-  frames.push_back(400);
-  frames.push_back(800);
-  frames.push_back(1600);
-  frames.push_back(3200);
+  //frames.push_back(25);
+  //frames.push_back(50);
+  //frames.push_back(100);
+  //frames.push_back(200);
+  //frames.push_back(400);
+  //frames.push_back(800);
+  //frames.push_back(1600);
+  //frames.push_back(3200);
+  gene_log_frames_with_log_win(frames);
 
   iter = frames.begin();
-  snprintf(file, 100, "corr_r%scr_%g_%g_%g_%g_%g_%llu_%d_%d.bin",
-           delimiter.c_str(), cmd.get<double>("eta"), cmd.get<double>("eps"),
-           rho0, Lx, Lx / ncols, cmd.get<unsigned long long int>("seed"),
-           r.size(), frames.size());
+  if (cmd.exist("Sk")) {
+    snprintf(file, 100, "corr_r%scrsk_%g_%g_%g_%g_%g_%llu_%d_%d.bin",
+             delimiter.c_str(), cmd.get<double>("eta"), cmd.get<double>("eps"),
+             rho0, Lx, Lx / ncols, cmd.get<unsigned long long int>("seed"),
+             r.size(), frames.size());
+    flag_sk = true;
+  } else {
+    snprintf(file, 100, "corr_r%scr_%g_%g_%g_%g_%g_%llu_%d_%d.bin",
+             delimiter.c_str(), cmd.get<double>("eta"), cmd.get<double>("eps"),
+             rho0, Lx, Lx / ncols, cmd.get<unsigned long long int>("seed"),
+             r.size(), frames.size());
+    flag_sk = false;
+  }
   fout.open(file, ios::binary);
   fout.write((char*)&r[0], sizeof(double) * r.size());
 }
@@ -352,7 +373,17 @@ void Corr_r::instant(const Node * bird, int nBird) {
 
   double *c_rho = (double *)fftw_malloc(sizeof(double) * ncells);
   double *c_v = (double *)fftw_malloc(sizeof(double) * ncells);
-  corr2d->eval(num, vx, vy, c_rho, c_v, rho_m, vx_m, vy_m);
+  if (flag_sk) {
+    double *sk_rho_2d = new double[ncells];
+    double *sk_v_2d = new double[ncells];
+    corr2d->eval(num, vx, vy, c_rho, c_v, sk_rho_2d, sk_v_2d, rho_m, vx_m, vy_m);
+    circle_ave->eval(sk_rho_2d, sk_rho);
+    circle_ave->eval(sk_v_2d, sk_v);
+    delete[] sk_rho_2d;
+    delete[] sk_v_2d;
+  } else {
+    corr2d->eval(num, vx, vy, c_rho, c_v, rho_m, vx_m, vy_m); 
+  }
   circle_ave->eval(c_rho, c_rho_r);
   circle_ave->eval(c_v, c_v_r);
   delete[] num;
@@ -366,6 +397,10 @@ void Corr_r::output(const Node * bird, int nBird, int t) {
   if (t == *iter) {
     c_rho_r = new double[r.size()];
     c_v_r = new double[r.size()];
+    if (flag_sk) {
+      sk_rho = new double[r.size()];
+      sk_v = new double[r.size()];
+    }
     instant(bird, nBird);
     fout.write((char *)&t, sizeof(int));
     fout.write((char *)&rho_m, sizeof(double));
@@ -373,6 +408,12 @@ void Corr_r::output(const Node * bird, int nBird, int t) {
     fout.write((char *)&vy_m, sizeof(double));
     fout.write((char *)c_rho_r, sizeof(double) * r.size());
     fout.write((char *)c_v_r, sizeof(double) * r.size());
+    if (flag_sk) {
+      fout.write((char *)sk_rho, sizeof(double) * r.size());
+      fout.write((char *)sk_v, sizeof(double) * r.size());
+      delete[]sk_rho;
+      delete[]sk_v;
+    }
     delete[] c_rho_r;
     delete[] c_v_r;
     ++iter;
