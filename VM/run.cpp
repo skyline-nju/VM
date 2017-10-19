@@ -43,8 +43,7 @@ void ini_rand_torques(double **disorder, int n, double epsilon,
 }
 
 
-void update_coor(Node *bird, Ran* myran, double eta, double epsilon,
-                 const double *disorder) {
+void update_coor(Node *bird, Ran* myran, double eta, const double *disorder) {
   static double eta2PI = eta * 2 * PI;
 
   //calculating noise
@@ -65,12 +64,21 @@ void update_coor(Node *bird, Ran* myran, double eta, double epsilon,
   noise = nullptr;
 }
 
-void run(Node *bird, Grid *cell, Ran *myran, int nStep, double eta,
-         double epsilon, const double *disorder, Output &out) {
+void run(Node *bird, Grid *cell, Ran *myran, int nStep,
+	       double eta, const double *disorder, Output &out) {
   for (int i = 1; i <= nStep; i++) {
     Grid::all_pairs(cell);
-    update_coor(bird, myran, eta, epsilon, disorder);
+    update_coor(bird, myran, eta, disorder);
     Grid::refresh(cell, bird);
     out.out(bird, Node::N, i);
   }
+}
+
+void run_raw(Node * bird, Grid * cell, Ran * myran, int nStep,
+						 double eta, const double * disorder) {
+	for (int i = 1; i <= nStep; i++) {
+		Grid::all_pairs(cell);
+		update_coor(bird, myran, eta, disorder);
+		Grid::refresh(cell, bird);
+	}
 }

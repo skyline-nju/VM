@@ -71,6 +71,6 @@ int main(int argc, char* argv[]) {
   ini_rand_torques(&disorder, Grid::mm, epsilon, seed);
 
   //run
-  run(bird, cell, myran, nStep, eta, epsilon, disorder, out);
+  run(bird, cell, myran, nStep, eta, disorder, out);
 
 }

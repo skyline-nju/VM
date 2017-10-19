@@ -9,6 +9,9 @@
 VM/*.out
 VM/*.o
 .vscode
+*.cxx
+*.pyd
+numpy.i
 
 snap/
 phi/
