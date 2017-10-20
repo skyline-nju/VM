@@ -4,6 +4,9 @@
 # Do not make changes to this file unless you know what you are doing--modify
 # the SWIG interface file instead.
 
+"""Simulating Vicsek model in 2D."""
+
+
 from sys import version_info as _swig_python_version_info
 if _swig_python_version_info >= (2, 7, 0):
     def swig_import_helper():
@@ -97,32 +100,49 @@ except __builtin__.Exception:
 
 
 def set_random_seed(seed):
+    """set_random_seed(int seed)"""
     return _VMpy.set_random_seed(seed)
-set_random_seed = _VMpy.set_random_seed
 
 def set_v0(_v0):
+    """set_v0(double _v0)"""
     return _VMpy.set_v0(_v0)
-set_v0 = _VMpy.set_v0
 
 def set_eta(_eta):
+    """set_eta(double _eta)"""
     return _VMpy.set_eta(_eta)
-set_eta = _VMpy.set_eta
 
 def setLx(_Lx):
+    """setLx(double _Lx)"""
     return _VMpy.setLx(_Lx)
-setLx = _VMpy.setLx
 
 def setLy(_Ly):
+    """setLy(double _Ly)"""
     return _VMpy.setLy(_Ly)
-setLy = _VMpy.setLy
 
-def run(*args):
-    return _VMpy.run(*args)
-run = _VMpy.run
+def ini(*args):
+    """
+    ini(double * x, double * y, double * vx, double * vy, int seed, double v0, double _eta, double Lx, double Ly)
+    ini(double * x, double * y, double * vx, double * vy, int nBird, int seed, double v0, double _eta, double Lx, double Ly)
+    """
+    return _VMpy.ini(*args)
 
-def coarse_grain(*args):
-    return _VMpy.coarse_grain(*args)
-coarse_grain = _VMpy.coarse_grain
+def run(nstep):
+    """run(int nstep)"""
+    return _VMpy.run(nstep)
+
+def get_snap(*args):
+    """
+    get_snap(double * x, double * y, double * vx, double * vy)
+    get_snap(double * x, double * y, double * vx, double * vy, int nBird)
+    """
+    return _VMpy.get_snap(*args)
+
+def get_coarse_grained_snap(*args):
+    """
+    get_coarse_grained_snap(int * num, double * svx, double * svy, double l)
+    get_coarse_grained_snap(int * num, double * svx, double * svy, int ncells, double l)
+    """
+    return _VMpy.get_coarse_grained_snap(*args)
 # This file is compatible with both classic and new-style classes.
 
 

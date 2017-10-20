@@ -7,8 +7,13 @@ void set_eta(double _eta);
 void setLx(double _Lx);
 void setLy(double _Ly);
 
-void run(int nstep, double *x, double *y, double *vx, double *vy, int nBird);
+void ini(double *x, double *y, double *vx, double *vy, int nBird,
+				 int seed, double v0, double _eta, double Lx, double Ly);
 
-void coarse_grain(double l, double *theta, int ncells,
-									double *x, double *y, double *vx, double *vy, int nBird);
+void run(int nstep);
+
+void get_snap(double *x, double *y, double *vx, double *vy, int nBird);
+
+void get_coarse_grained_snap(int *num, double *svx, double *svy,
+	                           int ncells, double l);
 #endif

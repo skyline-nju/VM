@@ -1,4 +1,8 @@
-%module VMpy
+%define DOCSTRING
+"Simulating Vicsek model in 2D."
+%enddef
+
+%module (docstring=DOCSTRING) VMpy
 %{
     /* the resulting C file should be built as a python extension */
     #define SWIG_FILE_WITH_INIT
@@ -14,28 +18,41 @@
     import_array();
 %}
 
+%feature("autodoc", "1");
+
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double *x, int nBird),
                                            (double *y, int ny),
                                            (double *vx, int nvx),
                                            (double *vy, int nvy),
-                                           (double *theta, int ncells)}
+                                           (double *theta, int ncells),
+                                           (double *svx, int nsvx),
+                                           (double *svy, int nsvy)}
 
-%rename (run) my_run;
+%apply (int* INPLACE_ARRAY1, int DIM1) {(int *num, int len_num)}
+
+%rename (ini) my_ini;
 %inline %{
-    void my_run(int nstep,
-                double *x, int nBird, double *y, int ny,
-                double *vx, int nvx, double *vy, int nvy){
-        run(nstep, x, y, vx, vy, nBird);
-    }
+  void my_ini(double *x, int nBird, double *y, int ny,
+              double *vx, int nvx, double *vy, int nvy,
+              int seed, double v0, double _eta, double Lx, double Ly) {
+                ini(x, y, vx, vy, nBird, seed, v0, _eta, Lx, Ly);
+  }
 %}
 
-%rename (coarse_grain) my_coarse_grain;
+%rename (get_snap) my_get_snap;
 %inline %{
-    void my_coarse_grain(double l, double *theta, int ncells,
-                         double *x, int nBird, double *y, int ny,
-                         double *vx, int nvx, double *vy, int nvy) {
-                             coarse_grain(l, theta, ncells, x, y, vx, vy, nBird);
-                         }
+  void my_get_snap(double *x, int nBird, double *y, int ny,
+                   double *vx, int nvx, double *vy, int nvy) {
+                     get_snap(x, y, vx, vy, nBird);
+  }
+%}
+
+%rename (get_coarse_grained_snap) my_get_coarse_grained_snap;
+%inline %{
+  void my_get_coarse_grained_snap(int *num, int len_num, double *svx, int nsvx,
+                                  double *svy, int nsvy, double l) {
+                                    get_coarse_grained_snap(num, svx, svy, len_num, l);
+  }
 %}
 
 %include "VMpy.h"

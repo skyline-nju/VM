@@ -1,23 +1,23 @@
-# 用PYTHON封装VM的c++代码
-先写好接口文件VMpy.i，然后在cmd执行
-```
-$ swig -python -c++ VMpy.i
-```
-得到VMpy_wrap.cxx和VMpy.py文件。用VS新建一个项目，windows桌面-->windows桌面向导-->动态链接库。添加相关的源文件、头文件以及接口文件。
+# 使用SWIG包裹C++代码生成python扩展模块
 
-**环境变量**
+1. 准备头文件、源文件以及接口文件，例如`VMpy.h`，`VMpy.cpp`和`VMpy.i`。
 
-1. **PYTHON_INCLUDE** C:\Users\user\Miniconda3\include
+2. 使用Vistual Studio生成python扩展
 
-2. **PYTHON_LIB** C:\Users\user\Miniconda3\libs\python36.lib
+    1. 新建项目，步骤：**windows桌面-->windows桌面向导-->动态链接库**。添加相关的源文件、头文件以及接口文件。**注意**：需要添加一个空的`VMpy_wrap.cxx`到源文件。
 
-3. **NUMPY_INCLUDE** C:\Users\user\Miniconda3\Lib\site-packages\numpy\core\include\
+    2. 设置**环境变量**: 将`PYTHON_INCLUDE`和`PYTHON_LIB`分别添加到**项目属性-->VC++目录**下的**包含目录**和**库目录**。如果用到`numpy`，需要在**包含目录**中添加`NUMPY_INCLUDE`。在**连接器-->输入-->附加依赖项**中添加`PYTHON_LIB`。本例中，环境变量如下：
+        - **PYTHON_INCLUDE** C:\Users\user\Miniconda3\include
+        - **PYTHON_LIB** C:\Users\user\Miniconda3\libs\python36.lib
+        - **NUMPY_INCLUDE** C:\Users\user\Miniconda3\Lib\site-packages\numpy\core\include\
+    
+        如果编译需要用到其他头文件和库，也需要做相应的设置。
+    
+    3. 在`C/C++-->预处理器-->预处理器定义`中添加`SWIG_EXPORTS`。
 
-**VS编译设置：**
+    4. 生成`VMpy_wrap.cxx`和`VMpy.py`：右击`VMpy.i`，找到**属性-->常规-->项类型**，设为**自定义生成工具**，在**自定义生产工具**选项卡中的**命令行**添加`swig -python -c++ $(ProjectName).i`，在**输出**中添加`$(ProjectName)_wrap.cxx`。
 
-1. 将PYTHON_INCLUDE和PYTHON_LIB分别添加到*项目属性*-->*VC++目录*下的*包含目录*和*库目录*。如果用到numpy, 需要在*包含目录*中添加NUMPY_INCLUDE.
-2. 在*C/C++*-->*预处理器*-->*预处理器定义*中添加**SWIG_EXPORTS**。
-3. 在*连接器*-->*输入*-->*附加依赖项*中添加*PYTHON_LIB*.
-4. 在*常规*中将*目标文件名*改为*_$(ProjectName)*，*扩展名*改为*.pyd*。
+    5. 设置输出文件：在Poject的属性页的**常规**选项卡中，设置**目标文件名**为`_$(ProjectName)`，设置**目标文件扩展名**为`.pyd`。然后在**生成事件-->生成后事件-->命令行**中输入`copy $(SolutionDir)$(Platform)\$(Configuration)\_$(ProjectName).pyd $(ProjectDir)`，这样生成的`.pyd`文件就自动的复制到工作目录下了。
 
-生成解决方案，将这一文件拷贝到VMpy.py所在文件夹，然后就能在其他python程序中import VMpy.
+    6. 生成项目。
+3. 使用python扩展：`import VMpy`即可。

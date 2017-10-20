@@ -78,6 +78,7 @@
     <TargetName>_$(ProjectName)</TargetName>
     <TargetExt>.pyd</TargetExt>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -95,6 +96,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;VMPY_EXPORTS;_WINDOWS;_USRDLL;SWIG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)VM\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -102,7 +104,22 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>$(PYTHON_LIB);libfftw3-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)VM\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>
+      </Outputs>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <TreatOutputAsContent>false</TreatOutputAsContent>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)$(Platform)\$(Configuration)\_$(ProjectName).pyd $(ProjectDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -152,7 +169,11 @@
     <ClCompile Include="VMpy_wrap.cxx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="VMpy.i" />
+    <CustomBuild Include="VMpy.i">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">swig -python -c++ $(ProjectName).i</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)_wrap.cxx;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VMpy.h" />

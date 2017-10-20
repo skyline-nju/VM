@@ -15,25 +15,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\VM\run.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\VM\grid.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\VM\node.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\VM\io_data.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\VM\spatial_corr.cpp">
+    <ClCompile Include="VMpy.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\VM\comn.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="VMpy.cpp">
+    <ClCompile Include="..\VM\grid.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\VM\io_data.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\VM\node.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\VM\run.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\VM\spatial_corr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="VMpy_wrap.cxx">
@@ -41,13 +41,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="VMpy.i">
-      <Filter>资源文件</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="VMpy.h">
       <Filter>头文件</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="VMpy.i">
+      <Filter>资源文件</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
