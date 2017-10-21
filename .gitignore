@@ -13,6 +13,8 @@ VM/*.o
 *.pyd
 numpy.i
 
+VMpy/data
+XYmodel/data
 snap/
 phi/
 log/
