@@ -1,8 +1,14 @@
 #include "VMpy.h"
 #include <iostream>
+#ifdef _MSC_VER
 #include "../VM/node.h"
 #include "../VM/grid.h"
 #include "../VM/run.h"
+#else
+#include "node.h"
+#include "grid.h"
+#include "run.h"
+#endif
 
 Ran *myran = NULL;
 double eta;
