@@ -13,7 +13,8 @@ VM/*.o
 *.pyd
 numpy.i
 
-VMpy/data
+VMpy/data/*.mp4
+VMpy/data/*.pdf
 XYmodel/data
 snap/
 phi/

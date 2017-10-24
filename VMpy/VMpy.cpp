@@ -1,19 +1,17 @@
 #include "VMpy.h"
 #include <iostream>
 #ifdef _MSC_VER
-#include "../VM/node.h"
-#include "../VM/grid.h"
 #include "../VM/run.h"
 #else
-#include "node.h"
-#include "grid.h"
 #include "run.h"
 #endif
 
 Ran *myran = NULL;
-double eta;
 Node *bird = NULL;
 Grid *cell = NULL;
+double *disorder = NULL;
+double eta;
+double eps;
 
 void set_random_seed(int seed) {
 	myran = new Ran(seed);
@@ -25,6 +23,10 @@ void set_v0(double _v0) {
 
 void set_eta(double _eta) {
 	eta = _eta;
+}
+
+void set_eps(double _eps) {
+	eps = _eps;
 }
 
 void setLx(double _Lx) {
@@ -57,10 +59,12 @@ void unpack(double *x, double *y, double *vx, double *vy,
 }
 
 void ini(double * x, double * y, double * vx, double * vy, int nBird,
-				 int seed, double v0, double _eta, double Lx, double Ly) {
+				 int seed, double v0, double _eta, double _eps, double Lx, double Ly) {
 	myran = new Ran(seed);
+	ini_rand_torques(&disorder, Lx * Ly, _eps, seed);
 	Node::v0 = v0;
 	eta = _eta;
+	eps = _eps;
 	Node::Lx = Lx;
 	Node::Ly = Ly;
 	Node::N = nBird;

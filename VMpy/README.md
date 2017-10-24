@@ -1,3 +1,11 @@
+# Pair of +1/-1 defects
+The director field of the defect pair, with the +1 (-1) defect positioned at *y*=0 and *x* = *a* (-*a*), is specified by
+```
+phi = arctan2(y, x-a) - arctan2(y, x+a) + psi
+```
+when `psi=0, PI/2, PI, 3/2 PI`, the correspondign director fields are shown below.
+![](data/defect_pairs.png)
+
 # 使用SWIG包裹C++代码生成python扩展模块
 
 1. 准备头文件、源文件以及接口文件，例如`VMpy.h`，`VMpy.cpp`和`VMpy.i`。
@@ -20,4 +28,4 @@
     5. 设置输出文件：在Poject的属性页的**常规**选项卡中，设置**目标文件名**为`_$(ProjectName)`，设置**目标文件扩展名**为`.pyd`。然后在**生成事件-->生成后事件-->命令行**中输入`copy $(SolutionDir)$(Platform)\$(Configuration)\_$(ProjectName).pyd $(ProjectDir)`，这样生成的`.pyd`文件就自动的复制到工作目录下了。
 
     6. 生成项目。
-3. 使用python扩展：`import VMpy`即可。
+3. 在Linux平台，写好makefile，在命令行输入`make`即可。

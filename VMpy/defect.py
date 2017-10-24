@@ -4,31 +4,47 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import VMpy
 
 
-def show_defects():
-    Lx = 64
-    Ly = 64
-    a = 20
+def show_defects(psi=0, ax=None):
+    if ax is None:
+        ax = plt.subplot(111)
+        flag_show = True
+    else:
+        flag_show = False
+    Lx = 40
+    Ly = 30
+    a = 10
     x = np.arange(Lx) + 0.5 - 0.5 * Lx
     y = np.arange(Ly) + 0.5 - 0.5 * Ly
-    x *= 4
-    y *= 4
     xx, yy = np.meshgrid(x, y)
     phi1 = np.arctan2(yy, xx - a)
     phi2 = np.arctan2(yy, xx + a)
-    phi = phi1 - phi2 + 0.5 * np.pi
+    phi = phi1 - phi2 + psi
     phi[phi < -np.pi] += 2 * np.pi
     phi[phi > np.pi] -= 2 * np.pi
     dx = np.cos(phi) * 0.5
     dy = np.sin(phi) * 0.5
-    plt.quiver(xx, yy, dx, dy, phi)
-    # plt.streamplot(xx, yy, dx, dy)
-    plt.axis("scaled")
-    plt.xlim(x[0], x[-1])
-    plt.ylim(y[0], y[-1])
-    plt.show()
+    box = [x[0], x[-1], y[0], y[-1]]
+    ax.imshow(phi, origin="lower", cmap="hsv", extent=box, alpha=0.7)
+    ax.quiver(xx, yy, dx, dy, units='inches')
+    ax.axis("scaled")
+    ax.axis("off")
+    if flag_show:
+        plt.show()
+        plt.close()
+
+
+def show_four_defect_pairs():
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 9))
+    psi = [0, np.pi * 0.5, np.pi, 1.5 * np.pi]
+    label = ["(a)", "(b)", "(c)", "(d)"]
+    for i, ax in enumerate(axes.flat):
+        show_defects(psi[i], ax)
+        ax.set_title(label[i], fontsize="xx-large")
+    plt.tight_layout()
+    # plt.show()
+    plt.savefig("data/defect_pairs.png")
     plt.close()
 
 
@@ -72,7 +88,7 @@ def coarse_grain(x, y, phi, Lx, Ly, l=1):
     ny = Ly // l
     vx_new = np.zeros((ny, nx))
     vy_new = np.zeros((ny, nx))
-    num = np.zeros((ny, nx), int)
+    num = np.zeros((ny, nx), np.int32)  # np.int32 for Linux platform
     for k in range(x.size):
         i = int(x[k])
         j = int(y[k])
@@ -108,6 +124,7 @@ def plot_one_frame(num, svx, svy, t, axes=None):
 
 
 if __name__ == "__main__":
+    # import VMpy
     d0 = 10
     rho0 = 4
     L = 1024
@@ -117,21 +134,19 @@ if __name__ == "__main__":
     l = 1
     ncols = L // l
     nrows = L // l
-    num = np.zeros(ncols * nrows, int)
-    svx = np.zeros(ncols * nrows)
-    svy = np.zeros(ncols * nrows)
+    # num = np.zeros(ncols * nrows, int)
+    # svx = np.zeros(ncols * nrows)
+    # svy = np.zeros(ncols * nrows)
+    # x, y, phi = create_defect_pair(d0, rho0, L, rot_angle=0)
+    # num, svx, svy = coarse_grain(x, y, phi, L, L, l)
+    # plot_one_frame(num, svx, svy, 0)
 
-    x, y, phi = create_defect_pair(d0, rho0, L, rot_angle=0)
-    num, svx, svy = coarse_grain(x, y, phi, L, L, l)
-    plot_one_frame(num, svx, svy, 0)
+    # VMpy.ini(x, y, np.cos(phi), np.sin(phi), seed, v0, eta, L, L)
 
-    VMpy.ini(x, y, np.cos(phi), np.sin(phi), seed, v0, eta, L, L)
+    # dt = 5
+    # for i in range(200):
 
-    dt = 5
-    for i in range(200):
-
-        VMpy.run(dt)
-        VMpy.get_coarse_grained_snap(num, svx, svy, l)
-        plot_one_frame(num, svx, svy, (i + 1) * dt)
-    # show_defects()
-
+    #     VMpy.run(dt)
+    #     VMpy.get_coarse_grained_snap(num, svx, svy, l)
+    #     plot_one_frame(num, svx, svy, (i + 1) * dt)
+    show_four_defect_pairs()

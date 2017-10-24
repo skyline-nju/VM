@@ -4,7 +4,14 @@
 # Do not make changes to this file unless you know what you are doing--modify
 # the SWIG interface file instead.
 
-"""Simulating Vicsek model in 2D."""
+"""
+ Simulating Vicsek model in 2D.
+
+    Caution: when calling get_coarse_grained_snap(num, svx, svy, l) in python,
+    the data type of num should be np.int32 otherwise a error will occur in Linux
+    platform.
+
+"""
 
 
 from sys import version_info as _swig_python_version_info
@@ -111,6 +118,10 @@ def set_eta(_eta):
     """set_eta(double _eta)"""
     return _VMpy.set_eta(_eta)
 
+def set_eps(_eps):
+    """set_eps(double _eps)"""
+    return _VMpy.set_eps(_eps)
+
 def setLx(_Lx):
     """setLx(double _Lx)"""
     return _VMpy.setLx(_Lx)
@@ -121,8 +132,8 @@ def setLy(_Ly):
 
 def ini(*args):
     """
-    ini(double * x, double * y, double * vx, double * vy, int seed, double v0, double _eta, double Lx, double Ly)
-    ini(double * x, double * y, double * vx, double * vy, int nBird, int seed, double v0, double _eta, double Lx, double Ly)
+    ini(double * x, double * y, double * vx, double * vy, int seed, double v0, double _eta, double _eps, double Lx, double Ly)
+    ini(double * x, double * y, double * vx, double * vy, int nBird, int seed, double v0, double _eta, double _eps, double Lx, double Ly)
     """
     return _VMpy.ini(*args)
 
