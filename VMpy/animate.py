@@ -136,7 +136,7 @@ def make_movie(L, rho0, d0, spin_num, nstep, eta, eps=0, seed=1, v0=0.5, l=1):
     elif spin_num == 1:
         mode = "b"
     elif spin_num == 2:
-        mode == "c"
+        mode = "c"
     else:
         mode = "d"
     filename = "data/L=%d_rho=%g_eta=%g_eps=%g_v=%g_%s.mp4" % (L, rho0, eta,
@@ -236,5 +236,5 @@ if __name__ == "__main__":
         seed = int(datetime.datetime.now().strftime("%m%d%H%M%S"))
     else:
         seed = arg.s
-    make_movie(arg.L, arg.rho0, arg.d, arg.angle * np.pi / 2, arg.nstep,
-               arg.eta, arg.eps, seed, arg.v, arg.l)
+    make_movie(arg.L, arg.rho0, arg.d, arg.angle, arg.nstep, arg.eta, arg.eps,
+               seed, arg.v, arg.l)

@@ -52,7 +52,7 @@ def animate(a, L, eta, N, dN, psi=0, seed=1, dt=0.05):
     XY.ini(L, dt, eta, seed, phi)
     FFMpegWriter = animation.writers["ffmpeg"]
     writer = FFMpegWriter(fps=10, metadata=dict(artist="Matplotlib"))
-    filename = "data/%d_%g_%d.mp4" % (L, eta, seed)
+    filename = "data/L=%d_Cl=%g.mp4" % (L, eta)
     fig = plt.figure()
     im = plt.imshow(
         np.zeros((L, L)),
@@ -63,14 +63,17 @@ def animate(a, L, eta, N, dN, psi=0, seed=1, dt=0.05):
         vmax=1,
         cmap="Greys")
     title = plt.title("", fontsize="xx-large")
-    title_template = r"$L=%d,\ t=%.1f$"
-    plt.colorbar()
+    title_template = r"$L=%d,\ t=%g,$ order parameter: %.4f"
+    cb = plt.colorbar()
+    cb.set_label(r"$\sin ^2 (2 \phi)$")
     with writer.saving(fig, filename, dpi=100):
         step = 0
         while step < N:
             PHY = np.sin(2 * phi.reshape(L, L))**2
             im.set_data(PHY.reshape(L, L))
-            title.set_text(title_template % (L, step * dt))
+            order_para = np.sqrt(
+                np.mean(np.cos(phi))**2 + np.mean(np.sin(phi))**2)
+            title.set_text(title_template % (L, step * dt, order_para))
             writer.grab_frame()
             XY.run(dN, phi)
             print("N=%d" % step)
@@ -78,4 +81,4 @@ def animate(a, L, eta, N, dN, psi=0, seed=1, dt=0.05):
 
 
 if __name__ == "__main__":
-    animate(20, 512, 1, 1000000, 1000)
+    animate(25, 512, 2, 30000, 20)
