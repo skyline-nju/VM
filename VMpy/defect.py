@@ -6,20 +6,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def show_defects(psi=0, ax=None):
+def show_defects(Lx, Ly, a, psi=0, ax=None, xc=0, yc=0, show_axis=False):
     if ax is None:
         ax = plt.subplot(111)
         flag_show = True
     else:
         flag_show = False
-    Lx = 40
-    Ly = 30
-    a = 10
-    x = np.arange(Lx) + 0.5 - 0.5 * Lx
-    y = np.arange(Ly) + 0.5 - 0.5 * Ly
+    x = np.arange(Lx) + 0.5 - 0.5 * Lx + xc
+    y = np.arange(Ly) + 0.5 - 0.5 * Ly + yc
     xx, yy = np.meshgrid(x, y)
-    phi1 = np.arctan2(yy, xx - a)
-    phi2 = np.arctan2(yy, xx + a)
+    phi1 = np.arctan2(yy - yc, xx - a - xc)
+    phi2 = np.arctan2(yy - yc, xx + a - xc)
     phi = phi1 - phi2 + psi
     phi[phi < -np.pi] += 2 * np.pi
     phi[phi > np.pi] -= 2 * np.pi
@@ -29,22 +26,29 @@ def show_defects(psi=0, ax=None):
     ax.imshow(phi, origin="lower", cmap="hsv", extent=box, alpha=0.7)
     ax.quiver(xx, yy, dx, dy, units='inches')
     ax.axis("scaled")
-    ax.axis("off")
+    if not show_axis:
+        ax.axis("off")
     if flag_show:
         plt.show()
         plt.close()
 
 
 def show_four_defect_pairs():
+    Lx = 40
+    Ly = 30
+    a = 10
     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 9))
     psi = [0, np.pi * 0.5, np.pi, 1.5 * np.pi]
-    label = ["(a)", "(b)", "(c)", "(d)"]
+    label = [
+        r"(a) $\psi=0$", r"(b) $\psi=\pi / 2$", r"(c) $\psi= \pi$",
+        r"(d) $\psi=3\pi/2$"
+    ]
     for i, ax in enumerate(axes.flat):
-        show_defects(psi[i], ax)
+        show_defects(Lx, Ly, a, psi[i], ax)
         ax.set_title(label[i], fontsize="xx-large")
     plt.tight_layout()
     # plt.show()
-    plt.savefig("data/defect_pairs.png")
+    plt.savefig("data/defect_pairs.pdf")
     plt.close()
 
 
@@ -90,8 +94,8 @@ def coarse_grain(x, y, phi, Lx, Ly, l=1):
     vy_new = np.zeros((ny, nx))
     num = np.zeros((ny, nx), np.int32)  # np.int32 for Linux platform
     for k in range(x.size):
-        i = int(x[k])
-        j = int(y[k])
+        i = int(x[k] / l)
+        j = int(y[k] / l)
         vx_new[j, i] += vx[k]
         vy_new[j, i] += vy[k]
         num[j, i] += 1

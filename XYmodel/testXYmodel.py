@@ -1,8 +1,29 @@
 """ Test XYmodel."""
 
 import numpy as np
-import matplotlib.pyplot as plt
 import XYmodel as XY
+import sys
+import os
+import platform
+import matplotlib
+matplotlib.use("Agg")
+if platform.system() is "Windows":
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as animation
+    plt.rcParams['animation.ffmpeg_path'] = r"D:\ffmpeg\bin\ffmpeg"
+else:
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as animation
+    dest = "/ffmpeg-3.3-64bit-static/ffmpeg"
+    path1 = "/home-gk/users/nscc1185/Applications"
+    path2 = "/home-yw/users/nsyw449_YK/dy/Program"
+    if os.path.exists(path1):
+        plt.rcParams['animation.ffmpeg_path'] = path1 + dest
+    elif os.path.exists(path2):
+        plt.rcParams['animation.ffmpeg_path'] = path2 + dest
+    else:
+        print("Error, cannot find ffmpeg")
+        sys.exit()
 
 
 def create_defect_pair(a, L, rot_angle=0):
@@ -26,34 +47,35 @@ def create_defect_pair(a, L, rot_angle=0):
     return phi.flatten()
 
 
-if __name__ == "__main__":
-    L = 512
-    dt = 0.05
-    eta = 1
-    n = L * L
-    seed = 123
-    a = 50
-    phi = create_defect_pair(a, L, 0)
-    # plt.imshow(phi.reshape(L, L), cmap="hsv", origin="lower")
-    psi = np.sin(2 * phi.reshape(L, L)) ** 2
-    plt.imshow(psi, cmap="Greys", origin="lower")
-    order_para = np.sqrt(np.mean(np.cos(phi))**2 + np.mean(np.sin(phi))**2)
-    plt.title(r"$t=%d\, \langle \phi\rangle = %.4f$" % (0, order_para))
-    # plt.show()
-    plt.savefig("data/%d_%d_%d.png" % (L, eta, 0))
-    plt.close()
-
+def animate(a, L, eta, N, dN, psi=0, seed=1, dt=0.05):
+    phi = create_defect_pair(a, L, psi)
     XY.ini(L, dt, eta, seed, phi)
+    FFMpegWriter = animation.writers["ffmpeg"]
+    writer = FFMpegWriter(fps=10, metadata=dict(artist="Matplotlib"))
+    filename = "data/%d_%g_%d.mp4" % (L, eta, seed)
+    fig = plt.figure()
+    im = plt.imshow(
+        np.zeros((L, L)),
+        animated=True,
+        extent=[0, L, 0, L],
+        origin="lower",
+        vmin=0,
+        vmax=1,
+        cmap="Greys")
+    title = plt.title("", fontsize="xx-large")
+    title_template = r"$L=%d,\ t=%.1f$"
+    plt.colorbar()
+    with writer.saving(fig, filename, dpi=100):
+        step = 0
+        while step < N:
+            PHY = np.sin(2 * phi.reshape(L, L))**2
+            im.set_data(PHY.reshape(L, L))
+            title.set_text(title_template % (L, step * dt))
+            writer.grab_frame()
+            XY.run(dN, phi)
+            print("N=%d" % step)
+            step += dN
 
-    step = 1000
-    for i in range(200):
-        XY.run(step, phi)
-        # plt.imshow(phi.reshape(L, L), cmap="hsv", origin="lower")
-        psi = np.sin(2 * phi.reshape(L, L)) ** 2
-        plt.imshow(psi, cmap="Greys", origin="lower")
-        order_para = np.sqrt(np.mean(np.cos(phi))**2 + np.mean(np.sin(phi))**2)
-        plt.title(r"$t=%d\, \langle \phi\rangle = %.4f$" % ((i + 1) * step,
-                                                            order_para))
-        # plt.show()
-        plt.savefig("data/g%d_%d_%d.png" % (L, eta, (i + 1) * step))
-        plt.close()
+
+if __name__ == "__main__":
+    animate(20, 512, 1, 1000000, 1000)
