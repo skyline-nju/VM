@@ -4,7 +4,7 @@
 
 In the XY model, the phase \\(\phi_i\\) at each lattice site *i* evolves according to
 $$
-\gamma\frac{d\phi_i}{dt}=\kappa\sum_j \sin(\phi_i-\phi_j)-\eta_i,
+\gamma\frac{d\phi_i}{dt}=-\kappa\sum_j \sin(\phi_i-\phi_j)-\eta_i,
 $$
 where \\(\eta_i\\) is the Langevin noise at site *i*, which has zero mean and the moments
 $$

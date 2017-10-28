@@ -14,7 +14,7 @@ _VMpy.so: comn.o grid.o io_data.o node.o run.o spatial_corr.o VMpy.o VMpy_wrap.o
 	$(CXX) -shared comn.o grid.o io_data.o node.o run.o spatial_corr.o VMpy.o VMpy_wrap.o -o _VMpy.so $(PYTHON_LIB) $(FFTW_LIB) $(LIBS)
 
 VMpy_wrap.o: VMpy_wrap.cxx
-	$(CXX) $(CPPFLAGS) $(CFLAGS) -c VMpy_wrap.cxx $(PYTHON_INC) $(NUMPY_INC)
+	$(CXX) $(CPPFLAGS) -c VMpy_wrap.cxx $(PYTHON_INC) $(NUMPY_INC)
 VMpy_wrap.cxx: VMpy.h VMpy.cpp VMpy.i
 	swig -python -c++ VMpy.i
 VMpy.o: VMpy.cpp VMpy.h

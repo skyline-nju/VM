@@ -1,5 +1,9 @@
 #include "XYmodel.h"
+#ifdef _MSC_VER
 #include "../VM/rand.h"
+#else
+#include "rand.h"
+#endif
 #include <cmath>
 #include <cstring>
 
@@ -7,8 +11,10 @@ int L;
 int n;
 double dt;
 double noise_strength;
+double h;						  // Strength of the external fields
 double *phi;
 double *phi_next;
+double *psi=NULL;
 int *neighbor;
 Ran *myran;
 
@@ -37,7 +43,7 @@ void set_neighbor() {
 	}
 }
 
-void xymodel::ini(int _L, double _dt, double _eta, int seed, 
+void ini(int _L, double _dt, double _eta, int seed, 
 	                double *_phi, int n_phi) {
 	L = _L;
 	dt = _dt;
@@ -52,12 +58,23 @@ void xymodel::ini(int _L, double _dt, double _eta, int seed,
 	set_neighbor();
 }
 
-void xymodel::one_step() {
+void ini(int _L, double _dt, double _eta, int seed,
+					double * _phi, int n_phi, double _h, double *_psi) {
+	ini(_L, _dt, _eta, seed, _phi, n_phi);
+	h = _h;
+	psi = new double[n_phi];
+	memcpy(psi, _psi, sizeof(double) * n_phi);
+}
+
+void one_step() {
 	for (int i = 0; i < n; i++) {
 		double noise = noise_strength * (myran->doub() - 0.5);
 		int j0 = i * 8;
 		for (int j = 0; j < 8; j++) {
 			noise += sin(phi[i] - phi[neighbor[j0 + j]]);
+		}
+		if (psi) {
+			noise += sin(phi[i] - psi[i]) * h;
 		}
 		phi_next[i] = phi[i] - dt * noise;
 	}
@@ -67,7 +84,7 @@ void xymodel::one_step() {
 	phi_next = tmp;
 }
 
-void xymodel::run(int nstep, double *phi_out, int size_phi) {
+void run(int nstep, double *phi_out, int size_phi) {
 	for (int i = 0; i < nstep; i++) {
 		one_step();
 	}

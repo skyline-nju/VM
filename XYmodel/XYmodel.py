@@ -99,9 +99,13 @@ except __builtin__.Exception:
     _newclass = 0
 
 
-def ini(_L, _dt, _eta, seed, _phi):
-    """ini(int _L, double _dt, double _eta, int seed, double * _phi)"""
-    return _XYmodel.ini(_L, _dt, _eta, seed, _phi)
+def ini(*args):
+    """
+    ini(int _L, double _dt, double _eta, int seed, double * _phi, double _h, double * _psi)
+    ini(int _L, double _dt, double _eta, int seed, double * _phi)
+    ini(int _L, double _dt, double _eta, int seed, double * _phi, double _h, double * _psi)
+    """
+    return _XYmodel.ini(*args)
 
 def one_step():
     """one_step()"""
