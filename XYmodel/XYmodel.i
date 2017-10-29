@@ -11,11 +11,11 @@
 %}
 
 /* include the numpy typemaps */
-#ifdef _MSC_VER
+// %ifdef _MSC_VER
 %include "../VMpy/numpy.i"
-#else
-%include "numpy.i"
-#endif
+// %else
+// %include "numpy.i"
+// %endif
 
 /* need this for correct module initialization */
 %init %{
