@@ -7,11 +7,11 @@ cmake_minimum_required(VERSION 2.8.10)
 
 find_package(CGAL QUIET)
 
-if ( CGAL_FOUND )
+if (CGAL_FOUND)
 
   include( ${CGAL_USE_FILE} )
 
-  include( CGAL_CreateSingleSourceCGALProgram )
+  #include( CGAL_CreateSingleSourceCGALProgram )
 
   include_directories (BEFORE "../../include")
 
@@ -25,24 +25,6 @@ if ( CGAL_FOUND )
   set(SRC_LIST main.cpp bird.cpp metric_free_vm.cpp comn.cpp)
   add_executable(metric_free ${SRC_LIST})
 
-  # CAGL-SWIG bindings
-  # find_package(SWIG REQUIRED)
-  # include( ${SWIG_USE_FILE} )
-
-  # find_package(PythonLibs)
-  # include_directories( ${PYTHON_INCLUDE_PATH})
-
-  # include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-
-  # set(CMAKE_SWIG_FLAGS "")
-
-  # set_source_files_properties(metric_free_vm.i PROPERTIES CPLUSPLUS ON)
-  # set_source_files_properties(metric_free_vm.i PROPERTIES SWIG_FLAGS "-includeall")
-  # SWIG_ADD_LIBRARY(metric_free_vm LANGUAGE python  SOURCES metric_free_vm.i metric_free_vm.cpp bird.cpp)
-  # SWIG_LINK_LIBRARIES(metric_free_vm ${PYTHON_LIBRARIES})
-
 else()
-  
     message(STATUS "This program requires the CGAL library, and will not be compiled.")
-  
 endif()

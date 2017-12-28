@@ -3,40 +3,26 @@
 #include <chrono>
 #include "metric_free_vm.h"
 #include "comn.h"
-
-#ifdef _MSC_VER
-std::string delimiter("\\");
-#else
-std::string delimiter("/");
-#endif
+#include "cmdline.h"
 
 int main(int argc, char* argv[]) {
-	// set parameters
-	double Lx = atof(argv[1]);
-	double Ly = Lx;
-	double eta = atof(argv[2]);
-	unsigned long long seed = atoi(argv[3]);
-	int nstep = atoi(argv[4]);
-	double eps = 0;
+  // set parameters
+  cmdline::parser cmd;
+  cmd.add<double>("eta", '\0', "noise strength", true);
+  cmd.add<double>("eps", '\0', "disorder strength", false, 0);
+  cmd.add<double>("Lx", 'L', "system length in x direction", true);
+  cmd.add<double>("Ly", '\0', "system length in y direction", false);
+  cmd.add<double>("rho0", '\0', "particle density", false, 1);
+  cmd.add<int>("nstep", 'n', "total steps to run", true);
+  cmd.add<unsigned long long int>(
+    "seed", 's', "seed of random number", false, 1);
+  cmd.add<double>("defect_sep", '\0', "separation between two defects", false, 0);
+  cmd.add<int>("defect_mode", '\0', "defect mode", false, 0);
+  cmd.add("output_cg", '\0', "output coarse-grained snapshots");
+  cmd.add("vectorial_noise", '\0', "use vectorial noise");
+  cmd.parse_check(argc, argv);
 
-	ini_rand(Lx, Ly, eta, seed, nstep);
-
-	// output setting
-	mkdir("phi");
-	char filename[100];
-	snprintf(filename, 100, "phi%s%g_%g_%g_%llu.dat", delimiter.c_str(), Lx, eta, eps, seed);
-	std::ofstream fout_phi(filename);
-	//mkdir("log");
-	//snprintf(filename, 100, "log%s%g_%g_%g_%llu.dat", delimiter.c_str(), Lx, eta, 0, seed);
-	int dt_phi = 100;
-	int n_period = nstep / dt_phi;
-
-	auto t_start = std::chrono::system_clock::now();
-	for (int i = 0; i < n_period; i++) {
-		double phi;
-		run(dt_phi, phi);
-		auto t_now = std::chrono::system_clock::now();
-		std::chrono::duration<double> elapsed_time = t_now - t_start;
-		fout_phi << (i + 1) * dt_phi << "\t" << phi << "\t" << elapsed_time.count() << "\n";
-	}
+  ini(cmd);
+  run(cmd.get<int>("nstep"));
+  end();
 }

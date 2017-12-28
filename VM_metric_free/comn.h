@@ -19,6 +19,12 @@
 
 const double PI = 3.14159265358979;
 
+#ifdef _MSC_VER
+const std::string delimiter("\\");
+#else
+const std::string delimiter("/");
+#endif
+
 // create folder
 void mkdir(const char *folder);
 
