@@ -470,8 +470,6 @@ Output::Output(double rho0, double Ly, int nBird,
   fout << endl;
   fout << "-------- Run --------\n";
   fout << "time step\telapsed time\n";
-  cout << "size of int: " << sizeof(int) << endl;
-  cout << "size of double: " << sizeof(double) << endl;
 }
 
 Output::~Output() {

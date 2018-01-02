@@ -110,7 +110,6 @@ void Ran::shuffle(T *a, int n) {
     a[j] = tmp;
   }
 }
-
 #endif
 
 

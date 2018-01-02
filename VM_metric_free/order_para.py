@@ -26,7 +26,6 @@ if __name__ == "__main__":
             phi[i] = read_phi(file)
         phi = sorted(phi, key=lambda x: eta[np.where(phi == x)])
         eta = sorted(eta)
-        
         plt.plot(eta, phi, "-o", label=r"$L=%d$" % l)
     plt.xlabel(r"$\eta$", fontsize="x-large")
     plt.ylabel(r"$\langle \phi \rangle$", fontsize="x-large")

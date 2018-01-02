@@ -2,6 +2,8 @@
 #include "bird.h"
 #include "cell_list.h"
 #include <iostream>
+#include <ctime>
+#include <chrono>
 
 const double PI = 3.14159265358979;
 Bird *bird = NULL;
@@ -79,6 +81,12 @@ void run(int nstep) {
 	}
 }
 
+void end() {
+  delete[] bird;
+  delete[] cell;
+  delete myran;
+}
+
 void get_snap(double *x, double *y, double *theta, int nBird) {
 	for (int i = 0; i < nBird; i++) {
 		x[i] = bird[i].x;
@@ -88,7 +96,10 @@ void get_snap(double *x, double *y, double *theta, int nBird) {
 }
 
 int main() {
-	ini_rand(100, 0.1, 100, 100, 123, 0.1);
-	run(100);
-	std::cout << "hello, world" << std::endl;
+	ini_rand(256, 0.1, 100, 100, 123, 0.1);
+	auto t_start = std::chrono::system_clock::now();
+	run(100000);
+	auto t_end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = t_end - t_start;
+	std::cout << elapsed_seconds.count() << "s\n";
 }

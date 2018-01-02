@@ -22,7 +22,7 @@ if (CGAL_FOUND)
     message(${CMAKE_CXX_FLAGS})
   endif(UNIX)
 
-  set(SRC_LIST main.cpp bird.cpp metric_free_vm.cpp comn.cpp)
+  set(SRC_LIST main.cpp comn.cpp vm.cpp particle.cpp io_data.cpp)
   add_executable(metric_free ${SRC_LIST})
 
 else()
