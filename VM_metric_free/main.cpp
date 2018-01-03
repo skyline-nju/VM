@@ -1,5 +1,4 @@
 #include "cmdline.h"
-#include "io.h"
 #include "io_data.h"
 
 int main(int argc, char* argv[]) {

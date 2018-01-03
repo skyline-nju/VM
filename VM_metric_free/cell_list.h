@@ -25,7 +25,7 @@ public:
 	void cell_cell(Cell<Node>*, double, double);
 	static void all_pairs(Cell<Node>*cell, double Lx, double Ly);
   static void link_nodes(Cell<Node> *cell, std::vector<Node> &node);
-  static void refresh(Cell<Node> *cell, std::vector<Node> &Node);
+  static void refresh(Cell<Node> *cell, std::vector<Node> &node);
 	//static Cell<Node> *ini(Node *bird, double Lx, double Ly);
 
 	Node* head;

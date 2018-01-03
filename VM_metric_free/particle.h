@@ -129,20 +129,20 @@ bool ParNode<BaseV>::within_range(const ParNode<BaseV> *other, double a, double 
 template <class BaseV>
 inline void ParNode<BaseV>::interact(ParNode *other) {
   if (within_range(other))
-    collide(other);
+    this->collide(other);
 }
 
 template <class BaseV>
 inline void ParNode<BaseV>::interact(ParNode *other, double a, double b) {
   if (within_range(other, a, b))
-    collide(other);
+    this->collide(other);
 }
 
 template <class BaseV>
 inline void ParNode<BaseV>::move(double eta, double torque, Ran &myran,
                                  double v0, double Lx, double Ly) {
-  update_v(eta, torque, myran);
-  update_x(x, y, v0, Lx, Ly);
+  this->update_v(eta, torque, myran);
+  this->update_x(x, y, v0, Lx, Ly);
 }
 
 #endif
