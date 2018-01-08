@@ -54,22 +54,13 @@ int main(int argc, char* argv[]) {
     }
   }
 
-
-  std::vector<_Writer *> writer;
-  if (cmd.exist("cg_on")) {
-    writer.push_back(new CoarseGrainSnapWriter(cmd));
-    writer[0]->write(0, birds);
-  }
-  writer.push_back(new OrderParaWriter(cmd));
-  writer.push_back(new LogWriter(cmd));
-
+  ini_output(cmd, birds);
   int n = cmd.get<int>("nstep");
+  double dt = cmd.get<double>("dt");
   for (int i = 1; i <= n; i++) {
     birds->align();
-    birds->stream(1, myran);
-    for (auto it = writer.begin(); it != writer.end(); ++it) {
-      (*it)->write(i, birds);
-    }
+    birds->stream(dt, myran);
+    output(i, birds);
   }
   delete birds;
 }

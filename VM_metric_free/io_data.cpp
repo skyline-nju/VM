@@ -1,7 +1,23 @@
 #include "io_data.h"
 #include <iomanip>
 
-_Writer::_Writer(const cmdline::parser & cmd): idx_frame(0) {
+std::vector<_Writer *> writers;
+std::vector<std::ofstream> fouts;
+
+// parameters
+double Lx;
+double Ly;
+double rho0;
+int nBird;
+int nstep;
+double eta;
+double eps;
+double ext_torque;
+unsigned long long seed;
+bool flag_ext_torque;
+
+void ini_output(const cmdline::parser &cmd, const VM *birds) {
+  // set parameters
   Lx = cmd.get<double>("Lx");
   Ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : Lx;
   rho0 = cmd.get<double>("rho0");
@@ -17,9 +33,27 @@ _Writer::_Writer(const cmdline::parser & cmd): idx_frame(0) {
     flag_ext_torque = false;
   }
   seed = cmd.get<unsigned long long>("seed");
+
+  // initialize writers
+  if (cmd.exist("cg_on")) {
+    fouts.push_back(std::ofstream());
+    writers.push_back(new CoarseGrainSnapWriter(cmd, fouts.back()));
+    writers[0]->write(0, birds, fouts[0]);
+  }
+  fouts.push_back(std::ofstream());
+  writers.push_back(new OrderParaWriter(cmd, fouts.back()));
+  fouts.push_back(std::ofstream());
+  writers.push_back(new LogWriter(cmd, fouts.back()));
 }
 
-OrderParaWriter::OrderParaWriter(const cmdline::parser & cmd) :
+void output(int i, const VM* birds) {
+  for (int j = 0; j < writers.size(); j++) {
+    writers[j]->write(i, birds, fouts[j]);
+  }
+}
+
+OrderParaWriter::OrderParaWriter(const cmdline::parser & cmd,
+                                 std::ofstream &fout) :
                                  _Writer(cmd) {
   mkdir("phi");
   char filename[100];
@@ -44,7 +78,7 @@ void OrderParaWriter::set_frames(const cmdline::parser &cmd) {
   }
 }
 
-void OrderParaWriter::write(int i, const VM *birds) {
+void OrderParaWriter::write(int i, const VM *birds, std::ofstream &fout) {
   if (!frames.empty() && i == frames[idx_frame]) {
     idx_frame++;
     double vx_m, vy_m;
@@ -59,7 +93,7 @@ void OrderParaWriter::write(int i, const VM *birds) {
   }
 }
 
-LogWriter::LogWriter(const cmdline::parser &cmd): _Writer(cmd) {
+LogWriter::LogWriter(const cmdline::parser &cmd, std::ofstream &fout): _Writer(cmd) {
   mkdir("log");
   char filename[100];
   if (!flag_ext_torque) {
@@ -120,7 +154,7 @@ void LogWriter::set_frames(const cmdline::parser & cmd) {
   }
 }
 
-void LogWriter::write(int i, const VM * bird) {
+void LogWriter::write(int i, const VM * bird, std::ofstream &fout) {
   if (!frames.empty() && i == frames[idx_frame]) {
     idx_frame++;
     auto t_now = std::chrono::system_clock::now();
@@ -137,7 +171,8 @@ void LogWriter::write(int i, const VM * bird) {
   }
 }
 
-CoarseGrainSnapWriter::CoarseGrainSnapWriter(const cmdline::parser &cmd):
+CoarseGrainSnapWriter::CoarseGrainSnapWriter(const cmdline::parser &cmd,
+                                             std::ofstream &fout):
                                              _Writer(cmd) {
   mkdir("snap");
   char filename[100];
@@ -200,7 +235,8 @@ void CoarseGrainSnapWriter::set_frames(const cmdline::parser &cmd) {
   }
 }
 
-void CoarseGrainSnapWriter::write(int i, const VM * birds) {
+void CoarseGrainSnapWriter::write(int i, const VM * birds,
+                                  std::ofstream &fout) {
   if ((!frames.empty() && i == frames[idx_frame]) || i == 0) {
     if (i > 0)
       idx_frame++;

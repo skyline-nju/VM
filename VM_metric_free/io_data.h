@@ -7,52 +7,42 @@
 #include "cmdline.h"
 #include "vm.h"
 
+void ini_output(const cmdline::parser &cmd, const VM *birds);
+
+void output(int i, const VM* birds);
+
 class _Writer {
 public:
-  _Writer(const cmdline::parser &cmd);
-  ~_Writer() { fout.close(); }
+  _Writer(const cmdline::parser &cmd) : idx_frame(0) {}
   virtual void set_frames(const cmdline::parser &cmd) = 0;
-  virtual void write(int i, const VM *bird) = 0;
+  virtual void write(int i, const VM *bird, std::ofstream &fout) = 0;
 
 protected:
-  std::ofstream fout;
   std::vector<int> frames;
   int idx_frame;
-
-  // parameters
-  double Lx;
-  double Ly;
-  double rho0;
-  int nBird;
-  int nstep;
-  double eta;
-  double eps;
-  double ext_torque;
-  unsigned long long seed;
-  bool flag_ext_torque;
 };
 
 class OrderParaWriter : public _Writer {
 public:
-  OrderParaWriter(const cmdline::parser &cmd);
+  OrderParaWriter(const cmdline::parser &cmd, std::ofstream &fout);
   void set_frames(const cmdline::parser &cmd);
-  void write(int i, const VM* bird);
+  void write(int i, const VM* bird, std::ofstream &fout);
 };
 
 class LogWriter : public _Writer {
 public:
-  LogWriter(const cmdline::parser &cmd);
+  LogWriter(const cmdline::parser &cmd, std::ofstream &fout);
   void set_frames(const cmdline::parser &cmd);
-  void write(int i, const VM *bird);
+  void write(int i, const VM *bird, std::ofstream &fout);
 private:
   std::chrono::time_point<std::chrono::system_clock> t_start;
 };
 
 class CoarseGrainSnapWriter : public _Writer {
 public:
-  CoarseGrainSnapWriter(const cmdline::parser &cmd);
+  CoarseGrainSnapWriter(const cmdline::parser &cmd, std::ofstream &fout);
   void set_frames(const cmdline::parser &cmd);
-  void write(int i, const VM* bird);
+  void write(int i, const VM* bird, std::ofstream &fout);
 
 private:
   double l;
