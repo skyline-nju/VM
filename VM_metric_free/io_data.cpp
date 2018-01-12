@@ -58,11 +58,11 @@ OrderParaWriter::OrderParaWriter(const cmdline::parser & cmd,
   mkdir("phi");
   char filename[100];
   if (!flag_ext_torque) {
-    snprintf(filename, 100, "phi%s%g_%g_%g_%llu.dat",
-      delimiter.c_str(), Lx, eta, eps, seed);
+    snprintf(filename, 100, "phi%s%g_%g_%g_%g_%llu.dat",
+      delimiter.c_str(), Lx, eta, eps, rho0, seed);
   } else {
-    snprintf(filename, 100, "phi%s%g_%g_%g_%llu_%g.dat",
-      delimiter.c_str(), Lx, eta, eps, seed, ext_torque);
+    snprintf(filename, 100, "phi%s%g_%g_%g_%g_%llu_%g.dat",
+      delimiter.c_str(), Lx, eta, eps, rho0, seed, ext_torque);
   }
   fout.open(filename);
   set_frames(cmd);
@@ -86,7 +86,7 @@ void OrderParaWriter::write(int i, const VM *birds, std::ofstream &fout) {
     double phi = std::sqrt(vx_m * vx_m + vy_m * vy_m);
     double theta = std::atan2(vy_m, vx_m);
     fout << i << "\t" << std::setprecision(8) << phi 
-         << "\t" << theta << "\n";
+         << "\t" << theta << std::endl;
 #ifdef _MSC_VER
     std::cout << i << "\t" << std::setprecision(8) << phi << "\n";
 #endif
@@ -97,11 +97,11 @@ LogWriter::LogWriter(const cmdline::parser &cmd, std::ofstream &fout): _Writer(c
   mkdir("log");
   char filename[100];
   if (!flag_ext_torque) {
-    snprintf(filename, 100, "log%s%g_%g_%g_%llu.dat",
-      delimiter.c_str(), Lx, eta, eps, seed);
+    snprintf(filename, 100, "log%s%g_%g_%g_%g_%llu.dat",
+      delimiter.c_str(), Lx, eta, eps, rho0, seed);
   } else {
-    snprintf(filename, 100, "log%s%g_%g_%g_%llu_%g.dat",
-      delimiter.c_str(), Lx, eta, eps, seed, ext_torque);
+    snprintf(filename, 100, "log%s%g_%g_%g_%g_%llu_%g.dat",
+      delimiter.c_str(), Lx, eta, eps, rho0, seed, ext_torque);
   }
   fout.open(filename);
   set_frames(cmd);
@@ -142,7 +142,7 @@ LogWriter::LogWriter(const cmdline::parser &cmd, std::ofstream &fout): _Writer(c
     fout << "Coarse-grained snapshots: OFF\n";
   fout << "\n";
   fout << "-------- RUN --------\n";
-  fout << "time step\telapsed time\n";
+  fout << "time step\telapsed time" << std::endl;
 }
 
 void LogWriter::set_frames(const cmdline::parser & cmd) {
@@ -163,7 +163,7 @@ void LogWriter::write(int i, const VM * bird, std::ofstream &fout) {
     int hour = int(dt / 3600);
     int min = int((dt - hour * 3600) / 60);
     int sec = dt - hour * 3600 - min * 60;
-    fout << i << "\t" << hour << ":" << min << ":" << sec << "\n";
+    fout << i << "\t" << hour << ":" << min << ":" << sec << std::endl;
     if (i == nstep) {
       std::time_t end_time = std::chrono::system_clock::to_time_t(t_now);
       fout << "Finished simulation at " << std::ctime(&end_time) << "\n";

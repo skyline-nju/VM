@@ -7,6 +7,7 @@ import os
 
 
 def read_phi(file, ncut=1500):
+    print(file)
     with open(file) as f:
         lines = f.readlines()[ncut:]
         print(len(lines))
@@ -27,9 +28,9 @@ if __name__ == "__main__":
         phi = sorted(phi, key=lambda x: eta[np.where(phi == x)])
         eta = sorted(eta)
         plt.plot(eta, phi, "-o", label=r"$L=%d$" % l)
-    plt.xlabel(r"$\eta$", fontsize="x-large")
-    plt.ylabel(r"$\langle \phi \rangle$", fontsize="x-large")
-    plt.legend(fontsize="x-large")
+    plt.xlabel(r"$\eta$", fontsize="xx-large")
+    plt.ylabel(r"$\langle \phi \rangle$", fontsize="xx-large")
+    plt.legend(fontsize="xx-large")
     plt.tight_layout()
     plt.show()
     plt.close()

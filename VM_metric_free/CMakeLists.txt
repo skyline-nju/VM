@@ -7,6 +7,9 @@ cmake_minimum_required(VERSION 2.8.10)
 
 find_package(CGAL QUIET)
 
+option(LINK_STATIC_LIBS
+       "Link the executable to static libraries"
+       ON)
 if (CGAL_FOUND)
 
   include( ${CGAL_USE_FILE} )
@@ -15,12 +18,14 @@ if (CGAL_FOUND)
 
   include_directories (BEFORE "../../include")
 
-  # link static libraries on unix.
-  if (UNIX)
-    set(my_flag "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lmpfr -lgmp")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} ${my_flag}")
-    message(${CMAKE_CXX_FLAGS})
-  endif(UNIX)
+  if (LINK_STATIC_LIBS)
+    # link static libraries on unix.
+    if (UNIX)
+      set(my_flag "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lmpfr -lgmp")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} ${my_flag}")
+      message(${CMAKE_CXX_FLAGS})
+    endif(UNIX)
+  endif(LINK_STATIC_LIBS)
 
   set(SRC_LIST main.cpp comn.cpp vm.cpp particle.cpp io_data.cpp)
   add_executable(metric_free ${SRC_LIST})
