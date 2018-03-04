@@ -10,9 +10,9 @@ void ini_rand_torques(
   double **disorder, int n, double epsilon, unsigned long long seed);
 
 void run(Node *bird, Grid *cell, Ran *myran, int nStep, double eta,
-         const double *disorder, Output &out);
+         const double *disorder, Output &out, bool vicskeShake=false);
 
 // just run without outputting anything.
 void run_raw(Node *bird, Grid *cell, Ran *myran, int nStep,
-						 double eta, const double *disorder);
+						 double eta, const double *disorder, bool vicskeShake=false);
 #endif

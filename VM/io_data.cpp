@@ -71,6 +71,34 @@ void gene_lin_frames(vector<int> &frames, int dt, int t_end, int t_beg) {
 }
 
 
+// set box size for coarse graining
+void set_box_size(const cmdline::parser &cmd, size_t & ncells,
+  int &ncols, int &nrows, double &lx, double &ly) {
+  double Lx = cmd.get<double>("Lx");
+  double Ly = cmd.get<double>("Ly");
+  if (cmd.exist("cg_ncol")) {
+    ncols = cmd.get<int>("cg_ncol");
+    if (cmd.exist("cg_nrow"))
+      nrows = cmd.get<int>("cg_nrow");
+    else
+      nrows = ncols;
+    lx = Lx / ncols;
+    ly = Ly / nrows;
+  } else if (cmd.exist("cg_lx")) {
+    lx = cmd.get<double>("cg_lx");
+    if (cmd.exist("cg_ly"))
+      ly = cmd.get<double>("cg_ly");
+    else
+      ly = lx;
+    ncols = int(Lx / lx);
+    nrows = int(Ly / ly);
+  } else {
+    cout << "Error, need input cg_nol or cg_lx\n";
+    exit(1);
+  }
+  ncells = ncols * nrows;
+}
+
 OrderPara::OrderPara(double eta, double eps, double rho0,
                      double Lx, double Ly, 
                      unsigned long long seed, int phi_dt, ofstream &log) {
@@ -224,7 +252,7 @@ CoarseGrain::CoarseGrain(int nBird, const cmdline::parser &cmd,
   double exponent = cmd.get<double>("cg_exp");
   if (dt > 0 || exponent > 0 || cmd.exist("cg_win")) {
     flag = true;
-    set_box_size(cmd);
+    set_box_size(cmd, ncells, ncols, nrows, lx, ly);
     set_output(cmd, nBird);
     log << "coarse grain: " << filename << endl;
   } else {
@@ -259,32 +287,6 @@ void CoarseGrain::set_output(const cmdline::parser &cmd, int nBird) {
   idx_cur_frame = 0;
 }
 
-void CoarseGrain::set_box_size(const cmdline::parser &cmd) {
-  double Lx = cmd.get<double>("Lx");
-  double Ly = cmd.get<double>("Ly");
-  if (cmd.exist("cg_ncol")) {
-    ncols = cmd.get<int>("cg_ncol");
-    if (cmd.exist("cg_nrow"))
-      nrows = cmd.get<int>("cg_nrow");
-    else
-      nrows = ncols;
-    lx = Lx / ncols;
-    ly = Ly / nrows;
-  } else if (cmd.exist("cg_lx")) {
-    lx = cmd.get<double>("cg_lx");
-    if (cmd.exist("cg_ly"))
-      ly = cmd.get<double>("cg_ly");
-    else
-      ly = lx;
-    ncols = int(Lx / lx);
-    nrows = int(Ly / ly);
-  } else {
-    cout << "Error, need input cg_nol or cg_lx\n";
-    exit(1);
-  }
-  ncells = ncols * nrows;
-}
-
 void CoarseGrain::write(const Node *bird, int nBird, int step) {
   if (step == vec_frames[idx_cur_frame]) {
     fout.write((char *)&step, sizeof(int));
@@ -317,6 +319,65 @@ void CoarseGrain::write(const Node *bird, int nBird, int step) {
   }
 }
 
+MeanCoarseGrain::MeanCoarseGrain(int nBird, const cmdline::parser &cmd,
+                                 std::ofstream &log, bool &flag) {
+  count = 0;
+  dt = cmd.get<int>("mcg_dt");
+  t_beg = cmd.get<int>("mcg_t_beg");
+  if (dt > 0) {
+    flag = true;
+    set_box_size(cmd, ncells, ncols, nrows, lx, ly);
+    set_output(cmd, nBird);
+    log << "time-average coarse grain " << filename << endl;
+    log << "first step to record: " << t_beg << endl;
+    log << "interval to record: " << dt << endl;
+  } else {
+    flag = false;
+    log << "time-average coarse grain: None\n ";
+  }
+  sum_n = new double[ncells] {};
+  sum_vx = new double[ncells] {};
+  sum_vy = new double[ncells] {};
+}
+
+MeanCoarseGrain::~MeanCoarseGrain() {
+  delete[] sum_n;
+  delete[] sum_vx;
+  delete[] sum_vy;
+}
+
+void MeanCoarseGrain::record(const Node *bird, int nBird, int step) {
+  if (step >= t_beg && step % dt == 0) {
+    coarse_grain(bird, nBird, sum_n, sum_vx, sum_vy, ncells, ncols, nrows,
+      lx, ly, false, false);
+    count++;
+    if (count % 1000 == 0) {
+      float *num = new float[ncells];
+      float *vx = new float[ncells];
+      float *vy = new float[ncells];
+      for (int i = 0; i < ncells; i++) {
+        num[i] = sum_n[i] / count;
+        vx[i] = sum_vx[i] / count;
+        vy[i] = sum_vy[i] / count;
+      }
+      fout.write((char *)num, sizeof(float) * ncells);
+      fout.write((char *)vx, sizeof(float) * ncells);
+      fout.write((char *)vy, sizeof(float) * ncells);
+      delete[] num;
+      delete[] vx;
+      delete[] vy;
+    }
+  }
+}
+
+void MeanCoarseGrain::set_output(const cmdline::parser &cmd, int nBird) {
+  mkdir("mean_coarse");
+  snprintf(filename, 100, "mean_coarse%scfff_%g_%g_%g_%g_%d_%d_%d_%llu.bin",
+    delimiter.c_str(), cmd.get<double>("eta"), cmd.get<double>("eps"),
+    cmd.get<double>("Lx"), cmd.get<double>("Ly"), ncols, nrows, nBird,
+    cmd.get<unsigned long long>("seed"));
+  fout.open(filename, ios::binary);
+}
 Corr_r::Corr_r(const cmdline::parser &cmd, int nBird) :
                lBox(cmd.get<double>("lBox")),
                ncols(cmd.get<double>("Lx") / cmd.get<double>("lBox")) {
@@ -462,6 +523,9 @@ Output::Output(double rho0, double Ly, int nBird,
   cg = new CoarseGrain(nBird, cmd, fout, flag);
   if (flag)
     fout_vec.push_back(bind(&CoarseGrain::write, cg, _1, _2, _3));
+  mcg = new MeanCoarseGrain(nBird, cmd, fout, flag);
+  if (flag)
+    fout_vec.push_back(bind(&MeanCoarseGrain::record, mcg, _1, _2, _3));
   if (cmd.get<double>("lBox") > 0) {
     cr = new Corr_r(cmd, nBird);
     fout_vec.push_back(bind(&Corr_r::output, cr, _1, _2, _3));
@@ -476,6 +540,7 @@ Output::~Output() {
   if (phi) delete phi;
   if (snap) delete snap;
   if (cg) delete cg;
+  if (mcg) delete mcg;
   time_t end_time = time(nullptr);
   fout << "Finished at " << asctime(localtime(&end_time));
   fout.close();

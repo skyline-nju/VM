@@ -79,7 +79,7 @@ public:
   CoarseGrain(int nBird, const cmdline::parser &cmd,
               std::ofstream &log, bool &flag);
   void write(const Node *bird, int nBird, int step);
-  void set_box_size(const cmdline::parser &cmd);
+  //void set_box_size(const cmdline::parser &cmd);
   void set_output(const cmdline::parser &cmd, int nBird);
 
 private:
@@ -93,6 +93,31 @@ private:
   int nrows;
   double lx;
   double ly;
+};
+
+// output time-average coarse-grained snapshots
+class MeanCoarseGrain {
+public:
+  MeanCoarseGrain(int nBird, const cmdline::parser &cmd,
+                  std::ofstream &log, bool &flag);
+  ~MeanCoarseGrain();
+  void record(const Node *bird, int nBird, int step);
+  void set_output(const cmdline::parser &cmd, int nBird);
+
+private:
+  std::ofstream fout;
+  size_t ncells;
+  int ncols;
+  int nrows;
+  double lx;
+  double ly;
+  int count;
+  int dt;
+  int t_beg;
+  char filename[100];
+  double *sum_n;
+  double *sum_vx;
+  double *sum_vy;
 };
 
 
@@ -142,30 +167,37 @@ private:
   OutSnapshot *snap;
   CoarseGrain *cg;
   Corr_r *cr;
+  MeanCoarseGrain *mcg;
 };
 
 template <typename T1, typename T2>
 void coarse_grain(const Node *bird, int nBird, T1 * num, T2 * vx, T2 * vy,
-                  size_t ncells, int ncols, int nrows, double lx, double ly) {
-  for (size_t i = 0; i < ncells; i++) {
-    num[i] = 0;
-    vx[i] = 0;
-    vy[i] = 0;
+                  size_t ncells, int ncols, int nrows, double lx, double ly,
+                  bool renew = true, bool norm = true) {
+  if (renew == true) {
+    for (size_t i = 0; i < ncells; i++) {
+      num[i] = 0;
+      vx[i] = 0;
+      vy[i] = 0;
+    }
   }
+
   for (unsigned int i = 0; i < nBird; i++) {
     int col = int(bird[i].x / lx);
     if (col < 0 || col >= ncols) col = 0;
     int row = int(bird[i].y / ly);
     if (row < 0 || row >= nrows) row = 0;
     int j = col + ncols * row;
-    num[j]++;
+    num[j] += 1;
     vx[j] += bird[i].vx;
     vy[j] += bird[i].vy;
   }
-  for (size_t i = 0; i < ncells; i++) {
-    if (num[i] > 0) {
-      vx[i] /= num[i];
-      vy[i] /= num[i];
+  if (norm == true) {
+    for (size_t i = 0; i < ncells; i++) {
+      if (num[i] > 0) {
+        vx[i] /= num[i];
+        vy[i] /= num[i];
+      }
     }
   }
 }

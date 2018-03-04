@@ -43,7 +43,7 @@ void ini_rand_torques(double **disorder, int n, double epsilon,
 }
 
 
-void update_coor(Node *bird, Ran* myran, double eta, const double *disorder) {
+void update_coor(Node *bird, Ran* myran, double eta, const double *disorder, bool vicskeShake) {
   static double eta2PI = eta * 2 * PI;
 
   //calculating noise
@@ -57,28 +57,35 @@ void update_coor(Node *bird, Ran* myran, double eta, const double *disorder) {
   }
 
   //updating coordination
-  for (int i = 0; i < Node::N; i++) {
-    bird[i].move(noise[i]);
+  if (vicskeShake) {
+    for (int i = 0; i < Node::N; i++) {
+      bird[i].move(noise[i], myran);
+    }
+  } else {
+    for (int i = 0; i < Node::N; i++) {
+      bird[i].move(noise[i]);
+    }
+
   }
   delete[] noise;
   noise = nullptr;
 }
 
 void run(Node *bird, Grid *cell, Ran *myran, int nStep,
-	       double eta, const double *disorder, Output &out) {
+	       double eta, const double *disorder, Output &out, bool vicsekShake) {
   for (int i = 1; i <= nStep; i++) {
     Grid::all_pairs(cell);
-    update_coor(bird, myran, eta, disorder);
+    update_coor(bird, myran, eta, disorder, vicsekShake);
     Grid::refresh(cell, bird);
     out.out(bird, Node::N, i);
   }
 }
 
 void run_raw(Node * bird, Grid * cell, Ran * myran, int nStep,
-						 double eta, const double * disorder) {
+						 double eta, const double * disorder, bool vicsekShake) {
 	for (int i = 1; i <= nStep; i++) {
 		Grid::all_pairs(cell);
-		update_coor(bird, myran, eta, disorder);
+		update_coor(bird, myran, eta, disorder, vicsekShake);
 		Grid::refresh(cell, bird);
 	}
 }

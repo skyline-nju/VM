@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   cmd.add<string>("snap_mode", '\0', "mode to output snapshots", false,
                   "one", cmdline::oneof<string>("one", "mult", "none"));
   cmd.add<int>(
-      "snap_dt", '\0', "time interval to output snap", false, 2000);
+      "snap_dt", '\0', "time interval to output snap", false, 50000);
   cmd.add<int>(
       "log_dt", '\0', "time interval to log", false, 100000);
   cmd.add<int>(
@@ -39,7 +39,10 @@ int main(int argc, char* argv[]) {
                   cmdline::oneof<string>("Hff", "B"));
   cmd.add("cg_win", '\0', "generate frames in block");
   cmd.add("Sk", '\0', "calculate structure factor");
+  cmd.add<int>("mcg_dt", '\0', "interval for time-average coarse grain", false, 0);
+  cmd.add<int>("mcg_t_beg", '\0', "first step to coarse grain", false, 200000);
   cmd.add<double>("lBox", '\0', "Box size to calculate correlation", false, 0);
+  cmd.add("VicsekShake", '\0', "turn on Vicsek-Shake");
   cmd.parse_check(argc, argv);
 
   //get parameters from cmdline
@@ -71,6 +74,7 @@ int main(int argc, char* argv[]) {
   ini_rand_torques(&disorder, Grid::mm, epsilon, seed);
 
   //run
-  run(bird, cell, myran, nStep, eta, disorder, out);
+  bool vicske_shake = cmd.exist("VicsekShake") ? true : false;
+  run(bird, cell, myran, nStep, eta, disorder, out, vicske_shake);
 
 }

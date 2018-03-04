@@ -13,6 +13,7 @@ struct Node
   void align(Node *node);
   void align(Node *node, double a, double b);
   void move(double noise);
+  void move(double noise, Ran *myran);
 
   static Node *ini_rand(Ran *myran);
   static Node *ini_move_left(Ran *myran);

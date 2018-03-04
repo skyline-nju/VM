@@ -39,6 +39,32 @@ void Node::move(double noise) {
 
 }
 
+void Node::move(double noise, Ran *myran) {
+  double tmp = sqrt(vx*vx + vy * vy);
+  double c1 = vx / tmp;
+  double s1 = vy / tmp;
+  double c2 = cos(noise);
+  double s2 = sin(noise);
+  vx = vx0 = c1 * c2 - s1 * s2;
+  vy = vy0 = c1 * s2 + c2 * s1;
+  
+  if (myran->doub() > 0.5) {
+    x += v0 * vx;
+    y += v0 * vy;
+  } else {
+    x -= v0 * vx;
+    y -= v0 * vy;
+  }
+  if (x >= Lx)
+    x -= Lx;
+  else if (x < 0)
+    x += Lx;
+  if (y >= Ly)
+    y -= Ly;
+  else if (y < 0)
+    y += Ly;
+}
+
 Node * Node::ini_rand(Ran * myran) {
   N = int(rho_0 * Lx * Ly);
   Node *bird = new Node[N];

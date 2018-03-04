@@ -28,6 +28,7 @@ VM/rhox/
 VM/snap_all/
 VM/snap_one/
 VM/coarse/
+VM/mean_coarse/
 VM/corr_r
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
