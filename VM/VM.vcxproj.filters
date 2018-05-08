@@ -21,22 +21,10 @@
     <ClInclude Include="node.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="rand.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="run.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="comn.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cmdline.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="io_data.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="spatial_corr.h">
+    <ClInclude Include="exporter.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,13 +41,7 @@
     <ClCompile Include="run.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="comn.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="io_data.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="spatial_corr.cpp">
+    <ClCompile Include="exporter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

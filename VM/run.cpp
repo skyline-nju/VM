@@ -1,23 +1,23 @@
 #include "run.h"
+#include "rand.h"
 using namespace std;
 
-void ini_birds(Node **p_bird, Ran *myran, const cmdline::parser &cmd) {
-  if (!cmd.exist("rho0") && !cmd.exist("file")) {
+LogExporter * log_ex;
+OrderParaExpoter *order_ex;
+CoarseGrainSnapExporter *cg_ex;
+SpatialCorr2dExporter *corr_ex;
+
+void ini_output(const cmdline::parser &cmd) {
+  set_output(cmd, &log_ex, &order_ex, &cg_ex, &corr_ex);
+}
+
+void ini_birds(Node **p_bird, int &n_par, Ran *myran, const cmdline::parser &cmd) {
+  if (!cmd.exist("rho0")) {
     cerr << cmd.usage();
     exit(1);
-  } else if (cmd.exist("file")) {
-    InSnapshot isnap(cmd.get<string>("file"));
-    vector<float> x;
-    vector<float> y;
-    vector<float> theta;
-    double Lx;
-    double Ly;
-    isnap.from_file(cmd.get<int>("idx_frame"), Lx, Ly, x, y, theta);
-    Node::rho_0 = x.size() / (Lx*Ly);
-    *p_bird = Node::ini_from_snap(Lx, Ly, x, y, theta);
-    cout << "rho_0 = " << Node::rho_0 << endl;
   } else {
     Node::rho_0 = cmd.get<double>("rho0");
+    n_par = Node::rho_0 * Node::Lx * Node::Ly;
     if (cmd.get<string>("ini_mode") == "left") {
       *p_bird = Node::ini_move_left(myran);
     } else if (cmd.get<string>("ini_mode") == "rand") {
@@ -37,7 +37,7 @@ void ini_rand_torques(double **disorder, int n, double epsilon,
     double *torque = new double[n];
     for (int i = 0; i < n; i++)
       torque[i] = (-0.5 + i *d) * epsilon * 2.0 * PI;
-    shuffle(torque, n, &myran);
+    shuffle(torque, n, myran);
     *disorder = torque;
   }
 }
@@ -71,21 +71,21 @@ void update_coor(Node *bird, Ran* myran, double eta, const double *disorder, boo
   noise = nullptr;
 }
 
-void run(Node *bird, Grid *cell, Ran *myran, int nStep,
-	       double eta, const double *disorder, Output &out, bool vicsekShake) {
+void run(Node *bird, int n_bird, Grid *cell, Ran *myran, int nStep,
+	       double eta, const double *disorder, bool vicsekShake) {
   for (int i = 1; i <= nStep; i++) {
     Grid::all_pairs(cell);
     update_coor(bird, myran, eta, disorder, vicsekShake);
     Grid::refresh(cell, bird);
-    out.out(bird, Node::N, i);
+    output(i, bird, n_bird, log_ex, order_ex, cg_ex, corr_ex);
   }
 }
 
-void run_raw(Node * bird, Grid * cell, Ran * myran, int nStep,
-						 double eta, const double * disorder, bool vicsekShake) {
-	for (int i = 1; i <= nStep; i++) {
-		Grid::all_pairs(cell);
-		update_coor(bird, myran, eta, disorder, vicsekShake);
-		Grid::refresh(cell, bird);
-	}
+void finish_simulation() {
+  delete log_ex;
+  delete order_ex;
+  delete cg_ex;
+  delete corr_ex;
 }
+
+

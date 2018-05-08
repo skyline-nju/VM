@@ -10,45 +10,32 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("Lx", 'L', "system length in x direction", true);
   cmd.add<double>("Ly", '\0', "system length in y direction", false);
   cmd.add<int>("nstep", 'n', "total steps to run", true);
-  cmd.add<unsigned long long int>(
-      "seed", 's', "seed of random number", false, 1);
+  cmd.add<unsigned long long>("seed", 's', "seed of random number", false, 1);
   cmd.add<double>("rho0", '\0', "density", false);
-  cmd.add<string>("file", 'f', "input file", false, "");
-  cmd.add<int>("idx_frame", '\0', "which frame to read", false, -1);
-  cmd.add<string>("snap_mode", '\0', "mode to output snapshots", false,
-                  "one", cmdline::oneof<string>("one", "mult", "none"));
-  cmd.add<int>(
-      "snap_dt", '\0', "time interval to output snap", false, 50000);
-  cmd.add<int>(
-      "log_dt", '\0', "time interval to log", false, 100000);
-  cmd.add<int>(
-      "phi_dt", '\0', "time interval to calculate phi", false, 100);
-  cmd.add<string>("ini_mode", 'i', "initializing mode", false,
-                  "rand", cmdline::oneof<string>("rand", "left"));
-  cmd.add<int>("t_equil", '\0', "time to reach equilibrium state", false, 100000);
-  cmd.add<int>("cg_dt", '\0', "time interval to coarse grain", false, 0);
-  cmd.add<int>("cg_ncol", '\0', "number of cols for coarse grain", false);
-  cmd.add<int>("cg_nrow", '\0', "number of rows for coarse grain", false);
-  cmd.add<double>("cg_lx", '\0', "Box size in x for coarse grain", false);
-  cmd.add<double>("cg_ly", '\0', "Box size in y for coarse grain", false);
-  cmd.add<double>("cg_exp", '\0',
-                  "the exponent for generating frames in log scales",
-                  false, 0);
-  cmd.add<string>("cg_format", '\0',
-                  "file format for coarse grain", false, "Hff",
-                  cmdline::oneof<string>("Hff", "B"));
-  cmd.add("cg_win", '\0', "generate frames in block");
-  cmd.add("Sk", '\0', "calculate structure factor");
-  cmd.add<int>("mcg_dt", '\0', "interval for time-average coarse grain", false, 0);
-  cmd.add<int>("mcg_t_beg", '\0', "first step to coarse grain", false, 200000);
-  cmd.add<double>("lBox", '\0', "Box size to calculate correlation", false, 0);
-  cmd.add("VicsekShake", '\0', "turn on Vicsek-Shake");
+  cmd.add<string>("ini_mode", '\0', "initial mode", false, "rand",
+                  cmdline::oneof<string>("left", "rand"));
+  cmd.add<string>("output", 'o', "path to output data", false);
+  cmd.add<int>("log_dt", '\0', "time inteval to write log", false, 0);
+  cmd.add<int>("order_dt", '\0', "time inteval to output order parameters", false, 100);
+  cmd.add<int>("cg_dt", '\0', "time inteval to output coarse-grained snapshots",
+               false, 0);
+  cmd.add<int>("cg_beg", '\0', "first frame of coarse-grained snapshots",
+               false, 0);
+  cmd.add<int>("cg_end", '\0', "last frame of coarse-grained snapshots",
+               false, 0);
+  cmd.add<int>("corr_dt", '\0', "time inteval to cal correlation functions",
+               false, 0);
+  cmd.add<int>("corr_beg", '\0', "first frame to cal correlation functions",
+               false, 0);
+  cmd.add<int>("cg_ncols", '\0', "num of cols to coarse grain", false, 512);
+  cmd.add<int>("cg_nrows", '\0', "num of rows to coarse grain", false, 512);
+
   cmd.parse_check(argc, argv);
 
   //get parameters from cmdline
   double eta = cmd.get<double>("eta");
   double epsilon = cmd.get<double>("eps");
-  int nStep = cmd.get<int>("nstep");
+  int n_step = cmd.get<int>("nstep");
   unsigned long long seed = cmd.get<unsigned long long int>("seed");
   Node::Lx = cmd.get<double>("Lx");
   Node::Ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : Node::Lx;
@@ -61,10 +48,8 @@ int main(int argc, char* argv[]) {
 
   //initial location of birds
   Node *bird = nullptr;
-  ini_birds(&bird, myran, cmd);
-
-  //set output
-  Output out(Node::rho_0, Node::Ly, Node::N, cmd);
+  int n_par;
+  ini_birds(&bird, n_par, myran, cmd);
 
   //link birds to cell list
   Grid::link_nodes(cell, bird);
@@ -73,8 +58,11 @@ int main(int argc, char* argv[]) {
   double *disorder = nullptr;
   ini_rand_torques(&disorder, Grid::mm, epsilon, seed);
 
-  //run
-  bool vicske_shake = cmd.exist("VicsekShake") ? true : false;
-  run(bird, cell, myran, nStep, eta, disorder, out, vicske_shake);
+  // initialize otuput
+  ini_output(cmd);
 
+  //run
+  run(bird, n_par, cell, myran, n_step, eta, disorder, false);
+
+  finish_simulation();
 }
