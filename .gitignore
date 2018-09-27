@@ -11,6 +11,7 @@ VM/*.o
 .vscode
 *.cxx
 *.pyd
+*.dat
 numpy.i
 
 VM_metric_free/build/
