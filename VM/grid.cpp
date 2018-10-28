@@ -19,8 +19,8 @@ Grid * Grid::ini(double Lx, double Ly) {
 }
 
 void Grid::cell_cell() {
-  Node *node1 = head;
-  Node *node2;
+  Par *node1 = head;
+  Par *node2;
   while (node1->next) {
     node2 = node1->next;
     do {
@@ -33,8 +33,8 @@ void Grid::cell_cell() {
 
 void Grid::cell_cell(Grid* grid) {
   if (grid->head) {
-    Node* node1 = head;
-    Node* node2;
+    Par* node1 = head;
+    Par* node2;
     do {
       node2 = grid->head;
       do {
@@ -48,8 +48,8 @@ void Grid::cell_cell(Grid* grid) {
 
 void Grid::cell_cell(Grid* grid, double a, double b) {
   if (grid->head) {
-    Node* node1 = head;
-    Node* node2;
+    Par* node1 = head;
+    Par* node2;
     do {
       node2 = grid->head;
       do {
@@ -68,7 +68,7 @@ void Grid::all_pairs(Grid * cell) {
     if (p->head) {
       p->cell_cell();
       p->cell_cell(p + 1);
-      p->cell_cell(p + mx + mx - 1, -Node::Lx, 0);
+      p->cell_cell(p + mx + mx - 1, -Par::Lx, 0);
       p->cell_cell(p + mx);
       p->cell_cell(p + mx + 1);
     }
@@ -85,8 +85,8 @@ void Grid::all_pairs(Grid * cell) {
     }
     if (p->head) {
       p->cell_cell();
-      p->cell_cell(p - mx + 1, Node::Lx, 0);
-      p->cell_cell(p + 1, Node::Lx, 0);
+      p->cell_cell(p - mx + 1, Par::Lx, 0);
+      p->cell_cell(p + 1, Par::Lx, 0);
       p->cell_cell(p + mx);
       p->cell_cell(p + mx - 1);
     }
@@ -95,32 +95,32 @@ void Grid::all_pairs(Grid * cell) {
   if (p->head) {
     p->cell_cell();
     p->cell_cell(p + 1);
-    p->cell_cell(cell, 0, Node::Ly);
-    p->cell_cell(cell + 1, 0, Node::Ly);
-    p->cell_cell(cell + mx - 1, -Node::Lx, Node::Ly);
+    p->cell_cell(cell, 0, Par::Ly);
+    p->cell_cell(cell + 1, 0, Par::Ly);
+    p->cell_cell(cell + mx - 1, -Par::Lx, Par::Ly);
   }
   p++;
   for (i = 1; i <= mx - 2; i++) {
     if (p->head) {
       p->cell_cell();
       p->cell_cell(p + 1);
-      p->cell_cell(cell + i - 1, 0, Node::Ly);
-      p->cell_cell(cell + i, 0, Node::Ly);
-      p->cell_cell(cell + i + 1, 0, Node::Ly);
+      p->cell_cell(cell + i - 1, 0, Par::Ly);
+      p->cell_cell(cell + i, 0, Par::Ly);
+      p->cell_cell(cell + i + 1, 0, Par::Ly);
     }
     p++;
   }
   if (p->head) {
     p->cell_cell();
-    p->cell_cell(p - mx + 1, Node::Lx, 0);
-    p->cell_cell(cell + mx - 2, 0, Node::Ly);
-    p->cell_cell(cell + mx - 1, 0, Node::Ly);
-    p->cell_cell(cell, Node::Lx, Node::Ly);
+    p->cell_cell(p - mx + 1, Par::Lx, 0);
+    p->cell_cell(cell + mx - 2, 0, Par::Ly);
+    p->cell_cell(cell + mx - 1, 0, Par::Ly);
+    p->cell_cell(cell, Par::Lx, Par::Ly);
   }
 }
 
-void Grid::link_nodes(Grid * cell, Node * node) {
-  for (int i = 0; i < Node::N; i++) {
+void Grid::link_nodes(Grid * cell, Par * node) {
+  for (int i = 0; i < Par::N; i++) {
     int col = int(node[i].x);
     if (col >= mx)
       col -= mx;
@@ -137,7 +137,7 @@ void Grid::link_nodes(Grid * cell, Node * node) {
   }
 }
 
-void Grid::refresh(Grid *cell, Node *node) {
+void Grid::refresh(Grid *cell, Par *node) {
   for (int i = 0; i < mm; i++) {
     cell[i].head = nullptr;
   }

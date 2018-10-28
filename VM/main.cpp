@@ -37,17 +37,17 @@ int main(int argc, char* argv[]) {
   double epsilon = cmd.get<double>("eps");
   int n_step = cmd.get<int>("nstep");
   unsigned long long seed = cmd.get<unsigned long long int>("seed");
-  Node::Lx = cmd.get<double>("Lx");
-  Node::Ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : Node::Lx;
+  Par::Lx = cmd.get<double>("Lx");
+  Par::Ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : Par::Lx;
 
   //initialize random number generator
   Ran *myran = new Ran(seed);
 
   //initialize cell list; calculate total number of cells.
-  Grid *cell = Grid::ini(Node::Lx, Node::Ly);
+  Grid *cell = Grid::ini(Par::Lx, Par::Ly);
 
   //initial location of birds
-  Node *bird = nullptr;
+  Par *bird = nullptr;
   int n_par;
   ini_birds(&bird, n_par, myran, cmd);
 

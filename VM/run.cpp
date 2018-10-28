@@ -11,17 +11,17 @@ void ini_output(const cmdline::parser &cmd) {
   set_output(cmd, &log_ex, &order_ex, &cg_ex, &corr_ex);
 }
 
-void ini_birds(Node **p_bird, int &n_par, Ran *myran, const cmdline::parser &cmd) {
+void ini_birds(Par **p_bird, int &n_par, Ran *myran, const cmdline::parser &cmd) {
   if (!cmd.exist("rho0")) {
     cerr << cmd.usage();
     exit(1);
   } else {
-    Node::rho_0 = cmd.get<double>("rho0");
-    n_par = Node::rho_0 * Node::Lx * Node::Ly;
+    Par::rho_0 = cmd.get<double>("rho0");
+    n_par = Par::rho_0 * Par::Lx * Par::Ly;
     if (cmd.get<string>("ini_mode") == "left") {
-      *p_bird = Node::ini_move_left(myran);
+      *p_bird = Par::ini_move_left(myran);
     } else if (cmd.get<string>("ini_mode") == "rand") {
-      *p_bird = Node::ini_rand(myran);
+      *p_bird = Par::ini_rand(myran);
     } else {
       cerr << cmd.usage();
       exit(1);
@@ -43,26 +43,26 @@ void ini_rand_torques(double **disorder, int n, double epsilon,
 }
 
 
-void update_coor(Node *bird, Ran* myran, double eta, const double *disorder, bool vicskeShake) {
+void update_coor(Par *bird, Ran* myran, double eta, const double *disorder, bool vicskeShake) {
   static double eta2PI = eta * 2 * PI;
 
   //calculating noise
-  double *noise = new double[Node::N];
+  double *noise = new double[Par::N];
   if (disorder) {
-    for (int i = 0; i < Node::N; i++)
+    for (int i = 0; i < Par::N; i++)
       noise[i] = (myran->doub() - 0.5) * eta2PI + disorder[bird[i].cell_idx];
   } else {
-    for (int i = 0; i < Node::N; i++)
+    for (int i = 0; i < Par::N; i++)
       noise[i] = (myran->doub() - 0.5) * eta2PI;
   }
 
   //updating coordination
   if (vicskeShake) {
-    for (int i = 0; i < Node::N; i++) {
+    for (int i = 0; i < Par::N; i++) {
       bird[i].move(noise[i], myran);
     }
   } else {
-    for (int i = 0; i < Node::N; i++) {
+    for (int i = 0; i < Par::N; i++) {
       bird[i].move(noise[i]);
     }
 
@@ -71,7 +71,7 @@ void update_coor(Node *bird, Ran* myran, double eta, const double *disorder, boo
   noise = nullptr;
 }
 
-void run(Node *bird, int n_bird, Grid *cell, Ran *myran, int nStep,
+void run(Par *bird, int n_bird, Grid *cell, Ran *myran, int nStep,
 	       double eta, const double *disorder, bool vicsekShake) {
   for (int i = 1; i <= nStep; i++) {
     Grid::all_pairs(cell);

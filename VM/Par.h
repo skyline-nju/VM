@@ -4,26 +4,26 @@
 #include "comn.h"
 
 
-struct Node
+struct Par
 {
-  Node();
-  double rr(Node *node);
-  double rr(Node *node, double a, double b);
-  void addV(Node *node);
-  void align(Node *node);
-  void align(Node *node, double a, double b);
+  Par();
+  double rr(Par *node);
+  double rr(Par *node, double a, double b);
+  void addV(Par *node);
+  void align(Par *node);
+  void align(Par *node, double a, double b);
   void move(double noise);
   void move(double noise, Ran *myran);
 
-  static Node *ini_rand(Ran *myran);
-  static Node *ini_move_left(Ran *myran);
-  static Node *ini_from_snap(double Lx0, double Ly0,
+  static Par *ini_rand(Ran *myran);
+  static Par *ini_move_left(Ran *myran);
+  static Par *ini_from_snap(double Lx0, double Ly0,
                              const std::vector<float> &x0,
                              const std::vector<float> &y0,
                              const std::vector<float> &theta0);
-  double x, y, vx, vx0, vy, vy0;
+  double x, y, vx, vx_next, vy, vy_next;
   int cell_idx;
-  Node* next;
+  Par* next;
 
   static double Lx;
   static double Ly;
@@ -32,29 +32,29 @@ struct Node
   static int N;
 };
 
-inline Node::Node() {
-  x = y = vx = vx0 = vy = vy0;
+inline Par::Par() {
+  x = y = vx = vx_next = vy = vy_next;
   cell_idx = 0;
   next = nullptr;
 }
 
-inline double Node::rr(Node *node) {
+inline double Par::rr(Par *node) {
   double dx = node->x - x;
   double dy = node->y - y;
   return dx*dx + dy*dy;
 }
 
-inline double Node::rr(Node *node, double a, double b) {
+inline double Par::rr(Par *node, double a, double b) {
   double dx = node->x - x + a;
   double dy = node->y - y + b;
   return dx*dx + dy*dy;
 }
 
-inline void Node::addV(Node *node) {
-  vx += node->vx0;
-  vy += node->vy0;
-  node->vx += vx0;
-  node->vy += vy0;
+inline void Par::addV(Par *node) {
+  vx += node->vx_next;
+  vy += node->vy_next;
+  node->vx += vx_next;
+  node->vy += vy_next;
 }
 
 #endif

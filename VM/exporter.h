@@ -97,6 +97,7 @@ void CoarseGrainSnapExporter::write_frame(int i_step, const TPar* p_arr,
  * \brief Exporter for 2d spatial correlation functions
  * 
  ***************************************************************************/
+
 class SpatialCorr2dExporter : public SpatialCorr2d, public BaseExporter {
 public:
   SpatialCorr2dExporter(const std::string &filename, int ncols, int nrows,
@@ -119,7 +120,6 @@ private:
 };
 
 
-
 template<typename TPar>
 void SpatialCorr2dExporter::write_frame(int i_step, const TPar * p_arr, int n_par) {
   double v_mean[2] = {0., 0.};
@@ -132,7 +132,6 @@ void SpatialCorr2dExporter::write_frame(int i_step, const TPar * p_arr, int n_pa
   delete[] c_rho;
   delete[] c_v;
 }
-
 
 void set_output(const cmdline::parser &cmd,
                 LogExporter **log_ex,

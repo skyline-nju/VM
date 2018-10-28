@@ -1,6 +1,6 @@
 #ifndef GRID_H
 #define GRID_H
-#include "node.h"
+#include "Par.h"
 
 struct Grid
 {
@@ -9,11 +9,11 @@ struct Grid
   void cell_cell(Grid*);
   void cell_cell(Grid*, double, double);
   static void all_pairs(Grid *cell);
-  static void link_nodes(Grid *cell, Node *node);
-  static void refresh(Grid *cell, Node *node);
+  static void link_nodes(Grid *cell, Par *node);
+  static void refresh(Grid *cell, Par *node);
   static Grid *ini(double Lx, double Ly);
 
-  Node* head;
+  Par* head;
 
   static int mx;
   static int my;
