@@ -97,7 +97,7 @@ public:
   void cal_r_square(const std::vector<TPar> &p_arr, int t, const Vec_2<double> &l);
 
   template <typename TPar>
-  void record(const std::vector<TPar> &p_arr, int t, const Vec_2<double> &l);
+  int record(const std::vector<TPar> &p_arr, int t, const Vec_2<double> &l);
 
   void output(double eta, double eps, double L, unsigned long long seed);
 
@@ -142,11 +142,20 @@ void MSD::cal_r_square(const std::vector<TPar>& p_arr, int t, const Vec_2<double
 }
 
 template <typename TPar>
-void MSD::record(const std::vector<TPar>& p_arr, int t, const Vec_2<double>& l) {
+int MSD::record(const std::vector<TPar>& p_arr, int t, const Vec_2<double>& l) {
+  int flag;
   if ( t > t0_ && (t - t0_) % sep_ == 0) {
     cal_r_square(p_arr, t, l);
+    flag = 1;
+  } else {
+    flag = 0;
   }
+  return flag;
 }
 
 void output_mean_msd(const std::vector<MSD> &msd_arr,
                      double eta, double eps, double L, unsigned long long seed);
+
+void ini_output_msd(double eta, double eps, double L, unsigned long long seed, int t0);
+
+void output_msd(const MSD &msd, int idx);

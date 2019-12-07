@@ -300,7 +300,7 @@ void run_osc(int Lx, int Ly, double beta, double eps, double rho0,
 
 }
 
-void run_reserve(int L, double beta, double eps, double rho0, double h0,
+void run_reverse(int L, double beta, double eps, double rho0, double h0,
                  unsigned long long seed, int n_step) {
   Vec_2<int> l(L, L);
   Ranq2 myran(seed);

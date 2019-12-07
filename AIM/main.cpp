@@ -16,6 +16,6 @@ int main(int argc, char* argv[]) {
   int n_period = 500;
   unsigned long long seed = 5;
   run_osc(Lx, beta, eps, rho0, h0, t_half, n_period, seed, false);
-  //run_reserve(Lx, beta, eps, rho0, h0, 2, 200);
+  //run_reverse(Lx, beta, eps, rho0, h0, 2, 200);
   //run_osc(Lx, Ly, beta, eps, rho0, h0, t_half, n_period, seed, true, false);
 }

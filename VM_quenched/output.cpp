@@ -5,6 +5,7 @@
 std::ofstream fout_phi;
 std::ofstream fout_XY;
 std::ofstream fout_traj;
+std::vector<std::ofstream *> fout_MSD_arr;
 
 #ifdef RAND_FIELD
 char disorder_t[] = "rf";
@@ -99,15 +100,21 @@ void output_mean_msd(const std::vector<MSD>& msd_arr,
   }
 
   char filename[100];
-#ifdef RAND_FIELD
-  char disorder_t[] = "rf";
-#else
-  char disorder_t[] = "rt";
-#endif
   snprintf(filename, 100, "msd_%s_%g_%g_%g_%llu.dat", disorder_t, L, eta, eps, seed);
   std::ofstream fout(filename);
   for (int i = 0; i < n_frame; i++) {
     fout << msd_arr[0].t_arr()[i] << "\t" << mean_msd[i] << "\n";
   }
   fout.close();
+}
+
+void ini_output_msd(double eta, double eps, double L, unsigned long long seed, int t0) {
+  char filename[100];
+  snprintf(filename, 100, "msd_%s_%g_%g_%g_%llu_%08d.dat", disorder_t, L, eta, eps, seed, t0);
+  fout_MSD_arr.push_back(nullptr);
+  fout_MSD_arr.back() = new std::ofstream(filename);
+}
+
+void output_msd(const MSD &msd, int idx) {
+  *fout_MSD_arr[idx] << msd.t_arr().back() << "\t" << msd.r_square().back() << std::endl;
 }

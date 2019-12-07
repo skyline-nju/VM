@@ -188,5 +188,5 @@ void run_osc(int Lx, int Ly, double beta, double eps, double rho0, double h0,
              int t_half, int n_period, unsigned long long seed,
              bool flag_time_ave = true, bool rand_ini_pos = true);
 
-void run_reserve(int L, double beta, double eps, double rho0, double h0,
+void run_reverse(int L, double beta, double eps, double rho0, double h0,
                  unsigned long long seed, int n_step);

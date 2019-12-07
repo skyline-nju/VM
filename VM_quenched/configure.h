@@ -1,5 +1,7 @@
 #pragma once
 
-//#define RAND_FIELD
+#define RAND_FIELD
 
-#define CAL_MSD
+//#define CAL_MSD
+
+#define USE_MPI

@@ -8,18 +8,26 @@
 #include "run.h"
 
 int main(int argc, char* argv[]) {
+#ifdef USE_MPI
+  MPI_Init(&argc, &argv);
+#endif
 #ifdef _MSC_VER
-  double eta = 0.18;
-  double eps = 0;
+  double eta = 0;
+  double eps = 0.5;
   int L = 32;
-  int seed = 1237;
+  unsigned long long seed = 123;
   int n_step = 10000000;
 #else
   double eta = atof(argv[1]);
   double eps = atof(argv[2]);
   double L = atof(argv[3]);
   int n_step = atoi(argv[4]);
-  int seed = atoi(argv[5]);
+  unsigned long long seed = atoi(argv[5]);
+#endif
+#ifdef USE_MPI
+  int my_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+  seed += my_rank;
 #endif
   double rho_0 = 1.;
   double v0 = 0.5;
@@ -31,11 +39,13 @@ int main(int argc, char* argv[]) {
   Vec_2<double> origin(0, 0);
   Vec_2<double> half_l(L * 0.5, L * 0.5);
 
-#ifdef CAL_MSD
-  typedef UniNode<Par2> par_t;
-#else
+  std::cout << "L = " << L << "\n";
+  std::cout << "eta = " << eta << "\n";
+  std::cout << "eps = " << eps << "\n";
+  std::cout << "seed = " << seed << "\n";
+  std::cout << "n_step = " << n_step << std::endl;
+
   typedef UniNode<Par> par_t;
-#endif
 
   std::vector<par_t> p_arr;
   p_arr.reserve(n_par);
@@ -73,10 +83,9 @@ int main(int argc, char* argv[]) {
     cl.recreate(p_arr);
   };
 #endif
-
-#ifdef CAL_MSD
-  run_MSD(eta, eps, gl_l, seed, n_step, pair_force, move, p_arr, cl);
-#else
   run(eta, eps, gl_l, seed, n_step, pair_force, move, p_arr, cl);
+
+#ifdef USE_MPI
+  MPI_Finalize();
 #endif
 }
