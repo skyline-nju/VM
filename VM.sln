@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VM", "VM\VM.vcxproj", "{9E7F4C4F-1DF5-4516-B695-B5C8D2FAC3FB}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AIM", "AIM\AIM.vcxproj", "{44210C33-D642-47F3-9C17-E9ACD78B4238}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VM_quenched", "VM_quenched\VM_quenched.vcxproj", "{719CC17B-15D8-4004-8272-19777C083CE2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VM_smectic", "VM_smectic\VM_smectic.vcxproj", "{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,14 @@ Global
 		{719CC17B-15D8-4004-8272-19777C083CE2}.Release|x64.Build.0 = Release|x64
 		{719CC17B-15D8-4004-8272-19777C083CE2}.Release|x86.ActiveCfg = Release|Win32
 		{719CC17B-15D8-4004-8272-19777C083CE2}.Release|x86.Build.0 = Release|Win32
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Debug|x64.ActiveCfg = Debug|x64
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Debug|x64.Build.0 = Debug|x64
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Debug|x86.ActiveCfg = Debug|Win32
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Debug|x86.Build.0 = Debug|Win32
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Release|x64.ActiveCfg = Release|x64
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Release|x64.Build.0 = Release|x64
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Release|x86.ActiveCfg = Release|Win32
+		{4784ECF7-09AA-4D96-8B0C-B4B4032876C2}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -28,8 +28,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="XYmodel.i">
-      <Filter>资源文件</Filter>
-    </None>
+    <CustomBuild Include="XYmodel.i" />
   </ItemGroup>
 </Project>
