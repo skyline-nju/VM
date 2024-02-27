@@ -89,7 +89,7 @@ exporter::Snap_GSD_2::Snap_GSD_2(const std::string& filename,
   : ExporterBase(start, n_step, sep) {
   unsigned int version = gsd_make_version(1, 4);
   handle_ = new gsd_handle;
-  if (open_flag == "rand") {
+  if (open_flag == "rand" || open_flag == "ordered") {
     int flag = gsd_create(filename.c_str(), "cpp", "hoomd", version);
     if (flag != 0) {
       std::cout << "Error when create " << filename << "; state=" << flag << std::endl;
@@ -115,7 +115,7 @@ exporter::Snap_GSD_2::Snap_GSD_2(const std::string& filename,
       std::cout << "open " << filename << std::endl;
     } 
   } else {
-    std::cout << "Wrong open flag, which must be one of 'new' or 'append'!" << std::endl;
+    std::cout << "Wrong open flag, which must be one of 'rand', 'ordered' and 'resume'!" << std::endl;
     exit(1);
   }
   half_Lx_ = Lx / 2;

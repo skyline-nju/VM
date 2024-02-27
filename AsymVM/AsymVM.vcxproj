@@ -131,7 +131,7 @@
     <ClInclude Include="exporter.h" />
     <ClInclude Include="grid.h" />
     <ClInclude Include="gsd.h" />
-    <ClInclude Include="Par.h" />
+    <ClInclude Include="particle.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="run.h" />
   </ItemGroup>
@@ -140,7 +140,7 @@
     <ClCompile Include="exporter.cpp" />
     <ClCompile Include="gsd.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Par.cpp" />
+    <ClCompile Include="particle.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

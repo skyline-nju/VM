@@ -1,5 +1,7 @@
-#include "Par.h"
+#include "particle.h"
 #include <cmath>
+
+double Par::alpha = 1.;
 
 Par::Par(double x0, double y0, double theta0) {
   x = x0;
@@ -18,6 +20,31 @@ void Par::align(Par *node, double a, double b) {
   if (rr(node, a, b) < 1)
     addV(node);
 }
+
+void Par::asym_align(Par* node) {
+  double dx = node->x - x;
+  double dy = node->y - y;
+  double rr = dx * dx + dy * dy;
+
+  if (rr < 1) {
+    double w1 = 0.5 * (1 + alpha * sgn(dx * vx_next + dy * vy_next));
+    double w2 = 0.5 * (1 + alpha * sgn(-dx * node->vx_next - dy * node->vy_next));
+    addV(node, w1, w2);
+  }
+}
+
+void Par::asym_align(Par* node, double a, double b) {
+  double dx = node->x - x + a;
+  double dy = node->y - y + b;
+  double rr = dx * dx + dy * dy;
+
+  if (rr < 1) {
+    double w1 = 0.5 * (1 + alpha * sgn(dx * vx_next + dy * vy_next));
+    double w2 = 0.5 * (1 + alpha * sgn(-dx * node->vx_next - dy * node->vy_next));
+    addV(node, w1, w2);
+  }
+}
+
 
 void Par::move(double noise, double Lx, double Ly, double v0) {
   double tmp = sqrt(vx*vx + vy*vy);

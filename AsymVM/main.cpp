@@ -1,5 +1,5 @@
 #include "run.h"
-#include "Par.h"
+#include "particle.h"
 #include "exporter.h"
 
 #include <iostream>
@@ -9,11 +9,12 @@ int main(int argc, char* argv[]) {
   double Ly = 128;
   double rho0 = 0.5;
   double eta = 0.2;
+  double alpha = 1;
   double v0 = 0.5;
 
-  int n_step = 10000;
+  int n_step = 50000;
   int snap_interval = 1000;
-  int seed = 100;
+  int seed = 101;
 
   std::string ini_mode = "resume";
   char folder[] = "D:/code/VM/AsymVM/data/";
@@ -22,14 +23,16 @@ int main(int argc, char* argv[]) {
   double Ly = atof(argv[2]);
   double rho0 = atof(argv[3]);
   double eta = atof(argv[4]);
+  double alpha = atof(argv[5]);
   double v0 = 0.5;
-  int n_step = atoi(argv[5]);
-  int snap_interval = atoi(argv[6]);
-  int seed = atoi(argv[7]);
-  std::string ini_mode = argv[8];
+  int n_step = atoi(argv[6]);
+  int snap_interval = atoi(argv[7]);
+  int seed = atoi(argv[8]);
+  std::string ini_mode = argv[9];
   char folder[] = "."
 #endif
   int n_par = int(round(Lx * Ly * rho0));
+  Par::alpha = alpha;
 
   std::vector<Par> p_arr;
   Grid<Par> cells(Lx, Ly, 1.0);
@@ -40,7 +43,7 @@ int main(int argc, char* argv[]) {
   char basename[255];
   char log_file[255];
   char gsd_file[255];
-  snprintf(basename, 255, "L%g_%g_e%g_r%g_s%d", Lx, Ly, eta, rho0, seed);
+  snprintf(basename, 255, "L%g_%g_e%g_r%g_a%g_s%d", Lx, Ly, eta, rho0, alpha, seed);
   snprintf(log_file, 255, "%slog_%s.dat", folder, basename);
   snprintf(gsd_file, 255, "%s%s.gsd", folder, basename);
 

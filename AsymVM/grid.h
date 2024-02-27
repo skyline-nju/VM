@@ -50,7 +50,8 @@ void Grid<TPar>::cell_cell(int cell_idx) {
   while (node1->next) {
     node2 = node1->next;
     do {
-      node1->align(node2);
+      //node1->align(node2);
+      node1->asym_align(node2);
       node2 = node2->next;
     } while (node2);
     node1 = node1->next;
@@ -65,7 +66,8 @@ void Grid<TPar>::cell_cell(int cell_idx1, int cell_idx2) {
     do {
       node2 = heads[cell_idx2];
       do {
-        node1->align(node2);
+        //node1->align(node2);
+        node1->asym_align(node2);
         node2 = node2->next;
       } while (node2);
       node1 = node1->next;
@@ -81,7 +83,8 @@ void Grid<TPar>::cell_cell(int cell_idx1, int cell_idx2, double a, double b) {
     do {
       node2 = heads[cell_idx2];
       do {
-        node1->align(node2, a, b);
+        //node1->align(node2, a, b);
+        node1->asym_align(node2, a, b);
         node2 = node2->next;
       } while (node2);
       node1 = node1->next;
