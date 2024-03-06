@@ -32,6 +32,7 @@ VM/coarse/
 VM/mean_coarse/
 VM/corr_r
 AsymVM/data
+NematicLAG/data
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

@@ -12,11 +12,11 @@ int main(int argc, char* argv[]) {
   double alpha = 1;
   double v0 = 0.5;
 
-  int n_step = 50000;
-  int snap_interval = 1000;
-  int seed = 101;
+  int n_step = 10000;
+  int snap_interval = 100;
+  int seed = 102;
 
-  std::string ini_mode = "resume";
+  std::string ini_mode = "ordered";
   char folder[] = "D:/code/VM/AsymVM/data/";
 #else
   double Lx = atof(argv[1]);
