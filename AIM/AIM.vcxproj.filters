@@ -21,9 +21,21 @@
     <ClCompile Include="AIM.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="comn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AIM.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="comn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="rand.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="vect.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

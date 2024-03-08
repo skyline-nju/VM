@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import struct
 
 
-
 if __name__ == "__main__":
 
     Lx = 256
@@ -54,4 +53,3 @@ if __name__ == "__main__":
             plt.show()
             plt.close()
             
-

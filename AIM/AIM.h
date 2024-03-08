@@ -1,8 +1,6 @@
 #pragma once
 #include "vect.h"
 #include "comn.h"
-#define RAND_SEQ
-#define SNAP_ON
 
 class Par_2 {
 public:
@@ -12,11 +10,10 @@ public:
   Par_2(TRan &myran, const Vec_2<int> &l);
 
   template <typename TRan>
-  Par_2(TRan &myran, const Vec_2<int> &l, int s,
-        const Vec_2<int> &origin = Vec_2<int>());
+  Par_2(TRan& myran, const Vec_2<int>& l, int s0);
 
-  int spin;
-  Vec_2<int> pos;
+  Vec_2<short> pos;
+  char spin;
 };
 
 template<typename TRan>
@@ -26,23 +23,21 @@ Par_2::Par_2(TRan & myran, const Vec_2<int> &l) {
   } else {
     spin = -1;
   }
-  pos.x = int(l.x * myran.doub());
-  pos.y = int(l.y * myran.doub());
+  pos.x = short(l.x * myran.doub());
+  pos.y = short(l.y * myran.doub());
 }
 
-template <typename TRan>
-Par_2::Par_2(TRan& myran, const Vec_2<int>& l, int s,
-             const Vec_2<int> &origin): spin(s) {
-  pos.x = int(origin.x + l.x * myran.doub());
-  pos.y = int(origin.y + l.y * myran.doub());
+template<typename TRan>
+Par_2::Par_2(TRan& myran, const Vec_2<int>& l, int s0) {
+  spin = s0;
+  pos.x = short(l.x * myran.doub());
+  pos.y = short(l.y * myran.doub());
 }
 
 class lattice_2 {
 public:
-  lattice_2(const Vec_2<int> &l, double beta, double eps, double rho0);
-
-  lattice_2(const Vec_2<int> &l, double beta, double eps,
-            double rho0, double h0);
+  lattice_2(const Vec_2<int> &l, double beta,
+            double eps, double rho0, double D);
 
   ~lattice_2();
 
@@ -52,11 +47,6 @@ public:
   template <typename TRan>
   void ini_rand(TRan &myran, int spin0);
 
-  template <typename TRan>
-  void ini_rand(TRan &myran, int spin0, double rho_liquid, double rho_gas);
-
-  void set_cum_pr();
-
   void add_particle(const Par_2 &p) const;
 
   void del_particle(const Par_2 &p) const;
@@ -65,19 +55,20 @@ public:
 
   void flip(Par_2 &p, double rand_val) const;
 
-  void flip(Par_2 &p, double rand_val, double h) const;
+  void flip(Par_2& p, double rand_val, double alpha) const;
 
   double cal_m_mean() const;
 
   double cal_rho0() const;
 
   template <typename TRan>
-  void one_step(TRan &myran);
+  void one_step(TRan& myran);
 
   template <typename TRan>
-  void one_step(TRan &myran, double h);
+  void one_step(TRan &myran, double alpha);
 
-  void output_snap(std::ofstream &fout, int i_step);
+
+  void output_snap(std::ofstream &fout);
 
 private:
   Vec_2<int> l_;
@@ -87,9 +78,9 @@ private:
 
   double beta_;
   double eps_;
-  double coeff_diffusion_ = 1;
+  double D_ = 1;
   double delta_t_;
-  double cum_pr_[4]{};
+  double prob_arr_[4]{};
 
   double rho0_;
   int n_par_;
@@ -112,81 +103,33 @@ void lattice_2::ini_rand(TRan& myran, int spin0) {
   }
 }
 
-template <typename TRan>
-void lattice_2::ini_rand(TRan& myran, int spin0,
-                         double rho_liquid, double rho_gas) {
-  int lx1 = int((rho0_ - rho_gas) / (rho_liquid - rho_gas) * l_.x);
-  int n_liquid = int(lx1 * l_.y * rho_liquid);
-  int n_gas = n_par_ - n_liquid;
-  for (int i = 0; i < n_liquid; i++) {
-    p_arr_.emplace_back(myran, Vec_2<int>(lx1, l_.y), spin0);
-    add_particle(p_arr_.back());
-  }
-  for (int i = 0; i < n_gas; i++) {
-    p_arr_.emplace_back(myran, Vec_2<int>(l_.x - lx1, l_.y), spin0,
-                        Vec_2<int>(lx1, 0));
-    add_particle(p_arr_.back());
-  }
-}
 
 template <typename TRan>
 void lattice_2::one_step(TRan& myran) {
-#ifdef RAND_SEQ
   shuffle(p_arr_, myran);
   for (int i = 0; i < n_par_; i++) {
-    const double rand_val = myran.doub();
-    if (rand_val < cum_pr_[3]) {
+    const double rand_val = myran.doub() / delta_t_;
+    if (rand_val < prob_arr_[3]) {
       hop(p_arr_[i], rand_val);
     } else {
       flip(p_arr_[i], rand_val);
     }
   }
-#else
-  for (int i = 0; i < n_par_; i++) {
-    const int j = int(myran.doub() * n_par_);
-    const double rand_val = myran.doub();
-    if (rand_val < cum_pr_[3]) {
-      hop(p_arr_[j], rand_val);
-    } else {
-      flip(p_arr_[j], rand_val);
-    }
-  }
-#endif
 }
 
 template <typename TRan>
-void lattice_2::one_step(TRan& myran, double h) {
-#ifdef RAND_SEQ
+void lattice_2::one_step(TRan& myran, double alpha) {
   shuffle(p_arr_, myran);
   for (int i = 0; i < n_par_; i++) {
-    const double rand_val = myran.doub();
-    if (rand_val < cum_pr_[3]) {
+    const double rand_val = myran.doub() / delta_t_;
+    if (rand_val < prob_arr_[3]) {
       hop(p_arr_[i], rand_val);
     } else {
-      flip(p_arr_[i], rand_val, h);
+      flip(p_arr_[i], rand_val, alpha);
     }
   }
-#else
-  for (int i = 0; i < n_par_; i++) {
-    const int j = int(myran.doub() * n_par_);
-    const double rand_val = myran.doub();
-    if (rand_val < cum_pr_[3]) {
-      hop(p_arr_[j], rand_val);
-    } else {
-      flip(p_arr_[j], rand_val, h);
-    }
-  }
-#endif
 }
 
-void run_osc(int L, double beta, double eps, double rho0, double h0,
-             int t_half, int n_period, unsigned long long seed,
-             bool flag_time_ave=true);
+void run(int Lx, int Ly, double rho0, double beta, double eps,
+         double D, int n_step, int dn_out, int seed, double alpha);
 
-
-void run_osc(int Lx, int Ly, double beta, double eps, double rho0, double h0,
-             int t_half, int n_period, unsigned long long seed,
-             bool flag_time_ave = true, bool rand_ini_pos = true);
-
-void run_reverse(int L, double beta, double eps, double rho0, double h0,
-                 unsigned long long seed, int n_step);
