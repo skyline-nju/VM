@@ -92,6 +92,11 @@ def read_frames(fname, beg=0, end=None, sep=1):
         for i in range(beg, end, sep):
             snap = get_one_snap(f, i)
             yield snap
+        
+
+def get_n_frames(fname):
+    with fl.open(name=fname, mode="rb") as f:
+        return f.nframes
 
 
 def save_last_frames(src_folder):
