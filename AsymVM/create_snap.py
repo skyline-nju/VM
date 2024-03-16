@@ -146,16 +146,16 @@ def shift_pos(s: hoomd.Snapshot, dx: float, dy: float) -> hoomd.Snapshot:
 
 if __name__ == "__main__":
     folder = "/scratch03.local/yduan/AsymVM/L512_128_half_self"
-    basename = "L512_128_e0.03_r3_a0.1_s2001.gsd"
+    basename = "L512_128_e0.03_r5_a0.05_s2001.gsd"
 
     fname = f"{folder}/{basename}"
-    snap = read_one_frame(fname, 3)
+    snap = read_one_frame(fname, -1)
 
-    # snap = adjust_density(snap, 3)
+    # snap = adjust_density(snap, 5)
    
     snap.configuration.step = 0
 
-    fout = f"{folder}/L512_128_e0.03_r3_a0.02_s2001.gsd"
+    fout = f"{folder}/L512_128_e0.03_r5_a0.01_s2001.gsd"
     f = hoomd.open(name=fout, mode='wb')
     f.append(snap)
 
