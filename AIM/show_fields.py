@@ -13,7 +13,8 @@ if __name__ == "__main__":
     D = 1
     seed = 1001
     dt = 5000
-    fin = "data/L%d_%d_b%g_r%g_a%g_e%g_D%g_s%d_dt%d_t0.bin" % (Lx, Ly, beta, rho0, alpha, eps, D, seed, dt)
+    t_beg = 0
+    fin = "data/L%d_%d_b%g_r%g_a%g_e%g_D%g_s%d_dt%d_t%d.bin" % (Lx, Ly, beta, rho0, alpha, eps, D, seed, dt, t_beg)
 
 
     frame_size = Lx * Ly * 2 * 2
@@ -23,8 +24,8 @@ if __name__ == "__main__":
 
         n_frames = filesize//frame_size
         print("find", n_frames, "frames")
-        f.seek(frame_size * (n_frames - 10))
-        # f.seek(0)
+        # f.seek(frame_size * (n_frames - n_frames))
+        f.seek(0)
 
         while f.tell() < filesize:
             buf = f.read(frame_size)

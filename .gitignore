@@ -18,6 +18,8 @@ VM_metric_free/build/
 VMpy/data/*.mp4
 VMpy/data/*.pdf
 XYmodel/data
+NematicLAG/data
+ACMq4/data
 snap/
 phi/
 log/
