@@ -78,7 +78,7 @@ public:
 
   void output_snap(std::ofstream &fout);
 
-private:
+protected:
   Vec_2<int> l_;
   int n_sites_;
   //unsigned short* rho_;

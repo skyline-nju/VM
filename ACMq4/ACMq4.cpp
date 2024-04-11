@@ -7,14 +7,12 @@ lattice_2::lattice_2(const Vec_2<int>& l, double beta, double eps, double rho0, 
   : l_(l), n_sites_(l.x * l.y), beta_(beta), eps_(eps), rho0_(rho0), D_(D) {
   prob_arr_[0] = D_;
   prob_arr_[1] = prob_arr_[0] + D_;
-  prob_arr_[2] = prob_arr_[1] + 1 * (1 + eps_);
-  prob_arr_[3] = prob_arr_[2] + 1 * (1 - eps_);
+  prob_arr_[2] = prob_arr_[1] + 1 * (1 - eps_);
+  prob_arr_[3] = prob_arr_[2] + 1 * (1 + eps_);
   //prob_arr_[2] = prob_arr_[1] + eps_;
   //prob_arr_[3] = prob_arr_[2];
   delta_t_ = 1 / (prob_arr_[3] + 2 * w0 * std::exp(beta_ * sqrt(2.) * 0.5));
-  
-  //rho_ = new unsigned short[n_sites_] {};
-  //m_ = new short[n_sites_] {};
+
 
   sigma_ = new unsigned char[n_sites_ * 4] {};
   n_par_ = int(l_.x * l_.y * rho0_);
@@ -27,9 +25,7 @@ lattice_2::lattice_2(const Vec_2<int>& l, double beta, double eps, double rho0, 
 }
 
 lattice_2::~lattice_2() {
-  //delete[] rho_;
-  //delete[] m_;
-  delete sigma_;
+  delete []sigma_;
 }
 
 
@@ -57,10 +53,10 @@ void lattice_2::hop(Par_2 & p, double rand_val) const {
     } else {
       int dx = 1 - p.spin;
       if (rand_val < prob_arr_[2]) {
-        p.pos.x += dx;
+        p.pos.x -= dx;
         tangle_1(p.pos.x, l_.x);
       } else {
-        p.pos.x -= dx;
+        p.pos.x += dx;
         tangle_1(p.pos.x, l_.x);
       }
     }
@@ -76,10 +72,10 @@ void lattice_2::hop(Par_2 & p, double rand_val) const {
     } else {
       int dy = 2 - p.spin;
       if (rand_val < prob_arr_[2]) {
-        p.pos.y += dy;
+        p.pos.y -= dy;
         tangle_1(p.pos.y, l_.y);
       } else {
-        p.pos.y -= dy;
+        p.pos.y += dy;
         tangle_1(p.pos.y, l_.y);
       }
     }

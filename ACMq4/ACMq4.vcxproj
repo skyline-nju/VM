@@ -128,12 +128,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ACMq4.h" />
+    <ClInclude Include="ACMq4_QS.h" />
     <ClInclude Include="comn.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="vect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ACMq4.cpp" />
+    <ClCompile Include="ACMq4_QS.cpp" />
     <ClCompile Include="comn.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
