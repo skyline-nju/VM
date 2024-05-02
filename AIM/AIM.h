@@ -42,6 +42,9 @@ public:
   ~lattice_2();
 
   template <typename TRan>
+  void ini_particles(TRan& myran, const std::string& ini_mode, const std::string& fname);
+
+  template <typename TRan>
   void ini_rand(TRan &myran);
 
   template <typename TRan>
@@ -87,6 +90,52 @@ private:
   std::vector<Par_2> p_arr_;
 };
 
+
+template<typename TRan>
+void lattice_2::ini_particles(TRan& myran, const std::string& ini_mode, const std::string& fname) {
+  if (ini_mode == "rand") {
+    ini_rand(myran);
+  } else if (ini_mode == "ordered") {
+    ini_rand(myran, 1);
+  } else if (ini_mode == "bi-ordered") {
+    ini_rand(myran);
+    for (auto& p : p_arr_) {
+      del_particle(p);
+      if (p.pos.y > l_.y * 0.5) {
+        p.spin = -1;
+      } else {
+        p.spin = 1;
+      }
+      add_particle(p);
+    }
+  } else if (ini_mode == "resume") {
+    std::ifstream fin(fname, std::ios::binary);
+    fin.seekg(0, std::ios::end);
+    size_t fsize = fin.tellg();
+    size_t framesize = n_sites_ * 4;
+    int n_frame = fsize / framesize;
+    fin.seekg(framesize * (n_frame - 1));
+    fin.read((char*)&rho_[0], sizeof(unsigned short) * n_sites_);
+    fin.read((char*)&m_[0], sizeof(short) * n_sites_);
+
+    for (int j = 0; j < l_.y; j++) {
+      for (int i = 0; i < l_.x; i++) {
+        int k = i + j * l_.x;
+        int n_p = (int(rho_[k]) + m_[k]) / 2;
+        int n_m = (int(rho_[k]) - m_[k]) / 2;
+        while (n_p > 0) {
+          p_arr_.emplace_back(1, i, j);
+          n_p--;
+        }
+        while (n_m > 0) {
+          p_arr_.emplace_back(-1, i, j);
+          n_m--;
+        }
+      }
+    }
+    std::cout << "find " << p_arr_.size() << " particles in the " << n_frame << "-th frame" << std::endl;
+  }
+}
 template <typename TRan>
 void lattice_2::ini_rand(TRan& myran) {
   for (int i = 0; i < n_par_; i++) {
@@ -131,5 +180,6 @@ void lattice_2::one_step(TRan& myran, double alpha) {
 }
 
 void run(int Lx, int Ly, double rho0, double beta, double eps,
-         double D, int n_step, int dn_out, int seed, double alpha);
+         double D, int n_step, int dn_out, int seed, double alpha,
+         const std::string &ini_condi);
 

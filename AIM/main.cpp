@@ -6,17 +6,17 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-  int Lx = 1024;
-  int Ly = 64;
-  double beta = 5;
-  double eps = 1;
-  double rho0 = 5;
+  int Lx = 512;
+  int Ly = 32;
+  double beta = 1.8;
+  double eps = 0.9;
+  double rho0 = 3;
   double D = 1;
-  double alpha = 1;
-  int n_step = 10000000;
-  int dn_out = 5000;
-  unsigned long long seed = 1001;
+  double alpha = 0;
+  int n_step = 1000000;
+  int dn_out = 1000;
+  unsigned long long seed = 4002;
+  std::string ini_condi = "ordered";
 
-
-  run(Lx, Ly, rho0, beta, eps, D, n_step, dn_out, seed, alpha);
+  run(Lx, Ly, rho0, beta, eps, D, n_step, dn_out, seed, alpha, ini_condi);
 }

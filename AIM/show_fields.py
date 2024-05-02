@@ -4,15 +4,15 @@ import struct
 
 
 if __name__ == "__main__":
-    Lx = 1024
-    Ly = 64
-    beta = 5
-    rho0 = 5
-    alpha = 1
-    eps = 1
+    Lx = 512
+    Ly = 32
+    beta = 1.8
+    rho0 = 3
+    alpha = 0
+    eps = 0.9
     D = 1
-    seed = 1001
-    dt = 5000
+    seed = 4002
+    dt = 1000
     t_beg = 0
     fin = "data/L%d_%d_b%g_r%g_a%g_e%g_D%g_s%d_dt%d_t%d.bin" % (Lx, Ly, beta, rho0, alpha, eps, D, seed, dt, t_beg)
 
@@ -24,8 +24,8 @@ if __name__ == "__main__":
 
         n_frames = filesize//frame_size
         print("find", n_frames, "frames")
-        # f.seek(frame_size * (n_frames - n_frames))
-        f.seek(0)
+        f.seek(frame_size * (n_frames - 10))
+        # f.seek(0)
 
         while f.tell() < filesize:
             buf = f.read(frame_size)
@@ -33,7 +33,7 @@ if __name__ == "__main__":
             rho, m = data
 
             fig, axes = plt.subplots(2, 2, figsize=(9, 4), constrained_layout=True, sharex="col")
-            im1 = axes[1, 0].imshow(rho, origin="lower", vmin=0, vmax=10)
+            im1 = axes[1, 0].imshow(rho, origin="lower", vmin=0, vmax=5)
 
             mask = rho > 0
             phi = np.zeros_like(m)

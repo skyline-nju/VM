@@ -111,15 +111,14 @@ void lattice_2::output_snap(std::ofstream& fout) {
 }
 
 void run(int Lx, int Ly, double rho0, double beta, double eps,
-         double D, int n_step, int dn_out, int seed, double alpha) {
+         double D, int n_step, int dn_out, int seed, double alpha,
+         const std::string& ini_condi) {
   Vec_2<int> l(Lx, Ly);
   Ranq2 myran(seed);
   lattice_2 domain(l, beta, eps, rho0, D);
-  domain.ini_rand(myran);
-  //domain.ini_rand(myran, 1);
   char folder[100] = "data";
   char basename[100];
-  snprintf(basename, 100, "L%d_%d_b%g_r%g_a%g_e%g_D%g_s%llu",
+  snprintf(basename, 100, "L%d_%d_b%g_r%g_a%g_e%g_D%g_s%d",
     Lx, Ly, beta, rho0, alpha, eps, D, seed);
 
   char order_para_file[256];
@@ -127,16 +126,23 @@ void run(int Lx, int Ly, double rho0, double beta, double eps,
 
   int t_start = 0;
   snprintf(order_para_file, 256, "%s/%s_t%d.dat", folder, basename, t_start);
-  std::ofstream fout(order_para_file);
-
   snprintf(snap_file, 256, "%s/%s_dt%d_t%d.bin", folder, basename, dn_out, t_start);
-  std::ofstream fsnap(snap_file, std::ios::binary);
+
+  domain.ini_particles(myran, ini_condi, snap_file);
+  //std::ofstream fout(order_para_file);
+  std::ofstream fsnap;
+
+  if (ini_condi == "resume") {
+    fsnap.open(snap_file, std::ios::binary | std::ios::app);
+  } else {
+    fsnap.open(snap_file, std::ios::binary);
+  }
 
 
   for (int i = 1; i <= n_step; i++) {
     domain.one_step(myran, alpha);
-    if (i % 100 == 0) {
-      fout << i << "\t" << domain.cal_m_mean() << "\n";
+    if (i % 1000 == 0) {
+      std::cout << i << "\t" << domain.cal_m_mean() << "\n";
       if (i % dn_out == 0) {
         domain.output_snap(fsnap);
       }
