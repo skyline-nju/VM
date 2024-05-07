@@ -3,11 +3,18 @@
 VM::VM(const cmdline::parser &cmd, Ran &myran) {
   Lx = cmd.get<double>("Lx");
   Ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : Lx;
+  half_Lx_ = Lx / 2;
+  half_Ly_ = Ly / 2;
   v0 = cmd.get<double>("v0");
   double rho0 = cmd.get<double>("rho0");
   N = int(Lx * Ly * rho0);
   eta = cmd.get<double>("eta");
-  extra_torque = cmd.get<double>("ext_torque") * PI;
+
+  if (cmd.exist("ext_torque")) {
+    extra_torque = cmd.get<double>("ext_torque") * PI;
+  } else {
+    extra_torque = 0.;
+  }
   double eps = cmd.get<double>("eps");
   if (eps > 0) {
     int tot = int(Lx * Ly);

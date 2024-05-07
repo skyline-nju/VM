@@ -8,7 +8,7 @@
 #include "vm.h"
 #include "gsd.h"
 
-void ini_output(const cmdline::parser &cmd, const VM *birds);
+void ini_output(const cmdline::parser &cmd, const VM *birds, const std::string& prefix);
 
 void output(int i, const VM* birds);
 

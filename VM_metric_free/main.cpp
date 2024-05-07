@@ -6,6 +6,7 @@ int main(int argc, char* argv[]) {
   cmdline::parser cmd;
   cmd.add<double>("eta", '\0', "noise strength", true);
   cmd.add<double>("eps", '\0', "disorder strength", false, 0);
+  cmd.add<double>("alpha", '\0', "fore-aft asymmetry", false, 0);
   cmd.add<double>("Lx", 'L', "system length in x direction", true);
   cmd.add<double>("Ly", '\0', "system length in y direction", false);
   cmd.add<double>("rho0", '\0', "particle density", false, 1);
@@ -55,13 +56,27 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  ini_output(cmd, birds);
+  // set prefix to store the output files
+  std::string prefix=".";
+
+  ini_output(cmd, birds, prefix);
   int n = cmd.get<int>("nstep");
   double dt = cmd.get<double>("dt");
-  for (int i = 1; i <= n; i++) {
-    birds->align();
-    birds->stream(dt, myran);
-    output(i, birds);
+
+  if (cmd.exist("alpha")) {
+    for (int i = 1; i <= n; i++) {
+      // std::cout << i << std::endl;
+      birds->align_asym(cmd.get<double>("alpha"));
+      birds->stream(dt, myran);
+      output(i, birds);
+    }
+  } else {
+    for (int i = 1; i <= n; i++) {
+      birds->align();
+      birds->stream(dt, myran);
+      output(i, birds);
+    }
   }
+
   delete birds;
 }

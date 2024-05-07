@@ -4,6 +4,10 @@
 #include "rand.h"
 #include "comn.h"
 
+template <typename T> int sgn(T val) {
+  return (T(0) < val) - (val < T(0));
+}
+
 // velocity of particles that move in discrete time steps and suffer the 
 // scalar noise.
 struct V_scalar {
@@ -14,6 +18,8 @@ struct V_scalar {
 
   template <class T>
   void collide(T *other);
+  template <class T>
+  void collide_asym(T *other, double dx, double dy, double alpha);
   void update_v(double eta, double torque, Ran &myran);
   void update_x(double &_x, double &_y, double v0, double Lx, double Ly);
   void get_v(double &VX, double &VY) const { VX = vx; VY = vy; }
@@ -33,6 +39,16 @@ inline void V_scalar::collide(T *other) {
   other->vy_next += vy;
 }
 
+template <class T>
+void V_scalar::collide_asym(T *other, double dx, double dy, double alpha) {
+  double w1 = 0.5 * (1 + alpha * sgn(dx * vx + dy * vy));
+  double w2 = 0.5 * (1 + alpha * sgn(-dx * other->vx - dy * other->vy));
+  vx_next += w1 * other->vx;
+  vy_next += w1 * other->vy;
+  other->vx_next += w2 * vx;
+  other->vy_next += w2 * vy;
+}
+
 // velocity of particles that move in discrete time steps and suffer the 
 // vectorial noise.
 struct V_vectorial : public V_scalar {
@@ -42,6 +58,11 @@ struct V_vectorial : public V_scalar {
 
   template <class T>
   void collide(T *other);
+
+  //TODO
+  template <class T>
+  void collide_asym(T *other, double dx, double dy, double alpha) {}
+
   void update_v(double eta, double torque, Ran &myran);
 
   int n_neighbor;
@@ -57,6 +78,7 @@ inline void V_vectorial::collide(T *other) {
   other->n_neighbor++;
 }
 
+
 // orientation of particles that move in continuos time steps.
 struct V_conti {
   V_conti() {}
@@ -65,6 +87,11 @@ struct V_conti {
 
   template <class T>
   void collide(T *other);
+
+  //TODO
+  template <class T>
+  void collide_asym(T *other, double dx, double dy, double alpha) {}
+
 
   void update_v(double eta, double torque, Ran &myran) {
     theta += (theta_dot + torque) * h + (myran.doub() - 0.5) * sqrt_24_Dr_h;

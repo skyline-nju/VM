@@ -31,6 +31,7 @@ public:
 
   // run
   virtual void align() = 0;
+  virtual void align_asym(double alpha) = 0;
   virtual void stream(double dt, Ran &myran) = 0;
 
   // get data
@@ -45,6 +46,8 @@ protected:
   double v0;
   double Lx;
   double Ly;
+  double half_Lx_;
+  double half_Ly_;
   int N;
   double eta;
   double extra_torque;
@@ -63,6 +66,7 @@ public:
   void input_data(const double *x, const double *y,
                   const double *vx, const double *vy);
   void align();
+  void align_asym(double alpha){};
   void stream(double dt, Ran &myran);
   void get_x(int i, double &x, double &y) const { x = par_arr[i].x; y = par_arr[i].y; }
   void get_v(int i, double &vx, double &vy) const { par_arr[i].get_v(vx, vy); }
@@ -122,10 +126,12 @@ public:
   void input_data(const double *x, const double *y,
                   const double *vx, const double *vy);
   void align();
+  void align_asym(double alpha);
   void stream(double dt, Ran &myran);
   void get_x(int i, double &x, double &y) const;
   void get_v(int i, double &vx, double &vy) const;
   void get_theta(int i, double &theta)const;
+  void get_dR(int i, int j, double &dx, double &dy) const;
 
   std::vector<BaseV> v_arr;
   std::vector<Pair_P_I> x_arr;
@@ -176,6 +182,51 @@ void VM_metric_free<BaseV>::align() {
     }
   }
   DT->clear();
+}
+
+template<class BaseV>
+void VM_metric_free<BaseV>::align_asym(double alpha) {
+  // Bug: fail to insert particles when Lx > Ly
+  DT->insert(x_arr.begin(), x_arr.end());
+  // Current solution is avoiding Lx > Ly
+  // Besides, the inserting speed is very slow for unequal Lx and Ly
+  // such that for now it seems we need run with Lx=Ly
+  
+  for (auto fit = DT->periodic_triangles_begin(PDT::UNIQUE);
+    fit != DT->periodic_triangles_end(PDT::UNIQUE); ++fit) {
+    unsigned int idx0 = fit.get_face()->vertex(0)->info();
+    unsigned int idx1 = fit.get_face()->vertex(1)->info();
+    unsigned int idx2 = fit.get_face()->vertex(2)->info();
+    double dx, dy;
+    if (idx0 < idx1) {
+      get_dR(idx0, idx1, dx, dy);
+      v_arr[idx0].collide_asym(&v_arr[idx1], dx, dy, alpha);
+    }
+    if (idx1 < idx2) {
+      get_dR(idx1, idx2, dx, dy);
+      v_arr[idx1].collide_asym(&v_arr[idx2], dx, dy, alpha);
+    }
+    if (idx2 < idx0) {
+      get_dR(idx2, idx0, dx, dy);
+      v_arr[idx2].collide_asym(&v_arr[idx0], dx, dy, alpha);
+    }
+  }
+  DT->clear();
+}
+template<class BaseV>
+void VM_metric_free<BaseV>::get_dR(int i, int j, double &dx, double &dy) const {
+  dx = (x_arr[j].first)[0] - (x_arr[i].first)[0];
+  dy = (x_arr[j].first)[1] - (x_arr[i].first)[1];
+  if (dx > half_Lx_) {
+    dx -= Lx;
+  } else if (dx < -half_Lx_) {
+    dx += Lx;
+  }
+  if (dy > half_Ly_) {
+    dy -= Ly;
+  } else if (dy < -half_Ly_) {
+    dy += Ly;
+  }
 }
 
 template<class BaseV>

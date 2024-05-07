@@ -17,8 +17,8 @@ unsigned long long seed;
 bool flag_ext_torque;
 Snap_GSD_2 *gsd_snap = nullptr;
 
-void ini_output(const cmdline::parser &cmd, const VM *birds) {
-  char prefix[100] = ".";
+void ini_output(const cmdline::parser &cmd, const VM *birds, const std::string &prefix) {
+  // char prefix[100] = ".";
   // set parameters
   Lx = cmd.get<double>("Lx");
   Ly = cmd.exist("Ly") ? cmd.get<double>("Ly") : Lx;
@@ -38,7 +38,7 @@ void ini_output(const cmdline::parser &cmd, const VM *birds) {
 
   // initialize writers
   if (cmd.exist("cg_on")) {
-    writers.push_back(new CoarseGrainSnapWriter(cmd, prefix));
+    writers.push_back(new CoarseGrainSnapWriter(cmd, prefix.c_str()));
     writers[0]->write(0, birds);
   }
   writers.push_back(new OrderParaWriter(cmd, prefix));
@@ -46,7 +46,11 @@ void ini_output(const cmdline::parser &cmd, const VM *birds) {
 
   if (cmd.exist("snap_dt")) {
     char filename[255];
-    snprintf(filename, 255, "%s%sL%g_%g_e%.3f_r%g_s%llu.gsd", prefix, delimiter.c_str(), Lx, Ly, eta, rho0, seed);
+    if (cmd.exist("alpha")) {
+      snprintf(filename, 255, "%s%sL%g_%g_a%g_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
+    } else {
+      snprintf(filename, 255, "%s%sL%g_%g_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, eta, rho0, seed);
+    }
     gsd_snap = new Snap_GSD_2(filename, 0, nstep, cmd.get<int>("snap_dt"), Lx, Ly, "rand");
   }
 }
@@ -65,7 +69,11 @@ OrderParaWriter::OrderParaWriter(const cmdline::parser & cmd, const std::string&
   snprintf(folder, 255, "%s%sphi%s", prefix.c_str(), delimiter.c_str(), delimiter.c_str());
   mkdir(folder);
   char filename[255];
-  snprintf(filename, 255, "%s%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, eta, rho0, seed);
+  if (cmd.exist("alpha")) {
+    snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
+  } else {
+    snprintf(filename, 255, "%s%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, eta, rho0, seed);
+  }
   fout_.open(filename);
   set_frames(cmd);
   std::cout << "Order parameter: " << filename << "\n";
@@ -100,7 +108,11 @@ LogWriter::LogWriter(const cmdline::parser &cmd, const std::string& prefix): _Wr
   snprintf(folder, 255, "%s%slog%s", prefix.c_str(), delimiter.c_str(), delimiter.c_str());
   mkdir(folder);
   char filename[255];
-  snprintf(filename, 255, "%s%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, eta, rho0, seed);
+  if (cmd.exist("alpha")) {
+    snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
+  } else {
+    snprintf(filename, 255, "%s%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, eta, rho0, seed);
+  }
   fout_.open(filename);
   set_frames(cmd);
 
@@ -128,6 +140,9 @@ LogWriter::LogWriter(const cmdline::parser &cmd, const std::string& prefix): _Wr
     fout_ << "Noise mode: vectorial\n";
   else
     fout_ << "Noise mode: scalar\n";
+  if (cmd.exist("alpha")) {
+    fout_ << "Fore-arf asymmetry with alpha=" << cmd.get<double>("alpha") << "\n";
+  }
   if (cmd.exist("defect_sep"))
     fout_ << "Initial configuration: defect pair with separation "
     << cmd.get<double>("defect_sep") << " in mode "
@@ -351,7 +366,7 @@ uint64_t Snap_GSD_2::get_time_step() {
     get_data_from_par(birds, pos);
     uint64_t step = get_time_step();
   
-    std::cout << "dump frame " << step << std::endl;
+    // std::cout << "dump frame " << step << std::endl;
     gsd_write_chunk(handle_, "configuration/step", GSD_TYPE_UINT64, 1, 1, 0, &step);
     gsd_write_chunk(handle_, "particles/N", GSD_TYPE_UINT32, 1, 1, 0, &n_par);
     gsd_write_chunk(handle_, "particles/position", GSD_TYPE_FLOAT, n_par, 3, 0, pos);
