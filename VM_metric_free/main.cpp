@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("defect_sep", '\0', "separation between two defects", false, 0);
   cmd.add<int>("defect_mode", '\0', "defect mode", false, 0);
   cmd.add<int>("log_dt", '\0', "step interval to record log", false, 1000);
+  cmd.add<int>("snap_dt", '\0', "step interval to output snapshots", false, 1000);
   // coarse-grained snapshots
   cmd.add("cg_on", '\0', "output coarse-grained snapshots");
   cmd.add<double>("cg_l", '\0', "boxes size for coarse graining", false, 1);
