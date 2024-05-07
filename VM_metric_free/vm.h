@@ -156,7 +156,10 @@ void VM_metric_free<BaseV>::input_data(const double * x, const double * y,
 
 template<class BaseV>
 void VM_metric_free<BaseV>::align() {
+  // Bug: fail to insert particles when Lx > Ly
   DT->insert(x_arr.begin(), x_arr.end());
+  // Current solution is avoiding Lx > Ly
+  
   for (auto fit = DT->periodic_triangles_begin(PDT::UNIQUE);
     fit != DT->periodic_triangles_end(PDT::UNIQUE); ++fit) {
     unsigned int idx0 = fit.get_face()->vertex(0)->info();
