@@ -15,6 +15,7 @@ VM/*.o
 numpy.i
 
 VM_metric_free/build/
+VM_metric_free/test/build/
 VMpy/data/*.mp4
 VMpy/data/*.pdf
 XYmodel/data

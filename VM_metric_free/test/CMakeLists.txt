@@ -8,7 +8,7 @@ if (NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
-project( topoVM )
+project( large_point_set )
 
 
 set (CGAL_DIR "/home/yduan/local/CGAL-5.6.1")
@@ -66,12 +66,12 @@ if (LINK_STATIC_LIBS)
 endif(LINK_STATIC_LIBS)
 
 
-# Creating entries for target: topoVM
+# Creating entries for target: large_point_set
 # ############################
 
-add_executable( topoVM  gsd.c comn.cpp io_data.cpp main.cpp particle.cpp vm.cpp)
+add_executable( large_point_set  test.cpp)
 
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS topoVM )
 
 # Link the executable to CGAL and third-party libraries
-target_link_libraries(topoVM PRIVATE CGAL::CGAL gmp)
+target_link_libraries(large_point_set PRIVATE CGAL::CGAL gmp)
