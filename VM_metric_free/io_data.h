@@ -126,7 +126,9 @@ public:
 
   template <typename TPar>
   void get_data_from_par(const std::vector<TPar>& p_arr, float* pos);
-  void get_data_from_par(const VM* birds, float* pos) const;
+
+  void get_data_from_par(const VM* birds,
+                         float* pos, uint32_t* type_id=nullptr) const;
 
   uint64_t get_time_step();
 

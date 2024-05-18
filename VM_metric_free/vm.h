@@ -39,6 +39,7 @@ public:
   virtual void get_v(int i, double &vx, double &vy) const = 0;
   virtual void get_v_mean(double &vx_m, double &vy_m) const;
   virtual void get_theta(int i, double &theta) const= 0;
+  virtual void get_type(int i, uint32_t& my_type) const = 0;
   int get_num_birds() const { return N; }
   virtual void output_data(double *x, double *y, double *vx, double *vy) const;
 
@@ -71,6 +72,7 @@ public:
   void get_x(int i, double &x, double &y) const { x = par_arr[i].x; y = par_arr[i].y; }
   void get_v(int i, double &vx, double &vy) const { par_arr[i].get_v(vx, vy); }
   void get_theta(int i, double &Theta) const { par_arr[i].get_theta(Theta); }
+  void get_type(int i, uint32_t& my_type) const { my_type = 0; }
 
   std::vector<Node> par_arr;
   Cell<Node> *cell;
@@ -132,6 +134,7 @@ public:
   void get_v(int i, double &vx, double &vy) const;
   void get_theta(int i, double &theta)const;
   void get_dR(int i, int j, double &dx, double &dy) const;
+  void get_type(int i, uint32_t& type_i) const { v_arr[i].get_type(type_i); }
 
   std::vector<BaseV> v_arr;
   std::vector<Pair_P_I> x_arr;
@@ -147,6 +150,13 @@ VM_metric_free<BaseV>::VM_metric_free(const cmdline::parser & cmd, Ran & myran):
   
   // initialize v_arr and x_arr
   ini(cmd, myran);
+  if (cmd.exist("dis_frac")) {
+    int n_dis = int(N * cmd.get<double>("dis_frac"));
+    for (int i = 0;  i < n_dis; i++) {
+      v_arr[i].set_type(1);
+    }
+    std::cout << "there are " << n_dis << " dissenters out of " << N << " birds" << std::endl;
+  }
 }
 
 template<class BaseV>

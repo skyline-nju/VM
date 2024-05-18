@@ -48,6 +48,8 @@ void ini_output(const cmdline::parser &cmd, const VM *birds, const std::string &
     char filename[255];
     if (cmd.exist("alpha")) {
       snprintf(filename, 255, "%s%sL%g_%g_a%g_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
+    } else if (cmd.exist("dis_frac")) {
+      snprintf(filename, 255, "%s%sL%g_%g_d%.3f_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, cmd.get<double>("dis_frac"), eta, rho0, seed);
     } else {
       snprintf(filename, 255, "%s%sL%g_%g_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, eta, rho0, seed);
     }
@@ -71,6 +73,8 @@ OrderParaWriter::OrderParaWriter(const cmdline::parser & cmd, const std::string&
   char filename[255];
   if (cmd.exist("alpha")) {
     snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
+  } else if (cmd.exist("dis_frac")) {
+    snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("dis_frac"), eta, rho0, seed);
   } else {
     snprintf(filename, 255, "%s%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, eta, rho0, seed);
   }
@@ -110,6 +114,8 @@ LogWriter::LogWriter(const cmdline::parser &cmd, const std::string& prefix): _Wr
   char filename[255];
   if (cmd.exist("alpha")) {
     snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
+  } else if (cmd.exist("dis_frac")) {
+    snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("dis_frac"), eta, rho0, seed);
   } else {
     snprintf(filename, 255, "%s%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, eta, rho0, seed);
   }
@@ -303,8 +309,8 @@ Snap_GSD_2::Snap_GSD_2(const std::string& filename,
     float box[6] = {float(Lx), float(Ly), 1, 0, 0, 0 };
     gsd_write_chunk(handle_, "configuration/box", GSD_TYPE_FLOAT, 6, 1, 0, box);
     
-    //char types[] = {'A', 'B'};
-    //gsd_write_chunk(handle_, "particles/types", GSD_TYPE_INT8, 2, 1, 0, types);
+    char types[] = {'A', 'B'};
+    gsd_write_chunk(handle_, "particles/types", GSD_TYPE_INT8, 2, 1, 0, types);
   } else if (open_flag == "resume") {
     int flag = gsd_open(handle_, filename.c_str(), GSD_OPEN_READWRITE);
     if (flag != 0) {
@@ -345,7 +351,8 @@ uint64_t Snap_GSD_2::get_time_step() {
 }
 
 
- void Snap_GSD_2::get_data_from_par(const VM* birds, float* pos) const {
+ void Snap_GSD_2::get_data_from_par(const VM* birds, float* pos,
+                                    uint32_t* type_id) const {
   int N = birds->get_num_birds();
   for (int i = 0; i < N; i++) {
     double x, y, theta;
@@ -355,6 +362,9 @@ uint64_t Snap_GSD_2::get_time_step() {
     pos[j3    ] = x - half_Lx_;
     pos[j3 + 1] = y - half_Ly_;
     pos[j3 + 2] = theta;
+    if (type_id != nullptr) {
+        birds->get_type(i, type_id[i]);
+    }
   }
  }
 
@@ -362,15 +372,19 @@ uint64_t Snap_GSD_2::get_time_step() {
     if (need_export(i_step)) {
     uint32_t n_par = birds->get_num_birds();
     float* pos = new float[n_par * 3];
+    uint32_t* type_id = new uint32_t[n_par];
 
-    get_data_from_par(birds, pos);
+    get_data_from_par(birds, pos, type_id);
     uint64_t step = get_time_step();
   
     // std::cout << "dump frame " << step << std::endl;
     gsd_write_chunk(handle_, "configuration/step", GSD_TYPE_UINT64, 1, 1, 0, &step);
     gsd_write_chunk(handle_, "particles/N", GSD_TYPE_UINT32, 1, 1, 0, &n_par);
     gsd_write_chunk(handle_, "particles/position", GSD_TYPE_FLOAT, n_par, 3, 0, pos);
+    gsd_write_chunk(handle_, "particles/typeid", GSD_TYPE_UINT32, n_par, 1, 0, type_id);
+
     gsd_end_frame(handle_);
     delete[] pos;
+    delete[] type_id;
   }
 }

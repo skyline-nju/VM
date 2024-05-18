@@ -24,6 +24,8 @@ struct V_scalar {
   void update_x(double &_x, double &_y, double v0, double Lx, double Ly);
   void get_v(double &VX, double &VY) const { VX = vx; VY = vy; }
   void get_theta(double &Theta) const { Theta = std::atan2(vy, vx); }
+  void get_type(uint32_t& my_type) const { my_type=0; }
+  void set_type(uint32_t my_type) {};
 
   double vx;
   double vy;
@@ -104,6 +106,8 @@ struct V_conti {
   }
 
   void get_theta(double &Theta) const { Theta = theta; }
+  void get_type(uint32_t& my_type) const { my_type=0; }
+  void set_type(uint32_t my_type) {};
 
   double theta;
   double theta_dot;
@@ -118,7 +122,52 @@ inline void V_conti::collide(T *other) {
   other->theta_dot -= omega;
 }
 
-// Linknode for particle moving with metric-interaction
+/*********************************************************************************
+ *  Mixture of alingers and dissenters
+ * 
+ *  One aligner aligns its orientation with neighbors, while one dissenter is not
+ *  affected by its neighbors, such that there are nonreciprocal interactions between
+ *  aligners and dissenters
+ * 
+ * *******************************************************************************/
+struct V_scalar_aligner_dissenter: public V_scalar {
+  V_scalar_aligner_dissenter(): V_scalar() {}
+  V_scalar_aligner_dissenter(double _vx, double _vy): V_scalar(_vx, _vy) {}
+
+  template <class T>
+  void collide(T *other);
+
+  // TODO
+  template <class T>
+  void collide_asym(T *other, double dx, double dy, double alpha) {}
+
+  void get_type(uint32_t& my_type) const { my_type = is_aligner == true? 0: 1; }
+
+  void set_type(uint32_t my_type) {is_aligner = my_type == 0;}
+  // is this particle a aligner or dissenter
+  bool is_aligner = true;
+};
+
+template <class T>
+inline void V_scalar_aligner_dissenter::collide(T *other) {
+  if (is_aligner) {
+    vx_next += other->vx;
+    vy_next += other->vy;
+  }
+  if (other->is_aligner) {
+    other->vx_next += vx;
+    other->vy_next += vy;
+  }
+}
+
+
+
+
+
+/**********************************************************************************
+ * For metric interaction, particle data is wrapped in a linknode structure
+ * 
+***********************************************************************************/
 template <class BaseV>
 class ParNode :public BaseV {
 public:

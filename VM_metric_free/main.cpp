@@ -10,6 +10,7 @@ int main(int argc, char* argv[]) {
   cmd.add<double>("Lx", 'L', "system length in x direction", true);
   cmd.add<double>("Ly", '\0', "system length in y direction", false);
   cmd.add<double>("rho0", '\0', "particle density", false, 1);
+  cmd.add<double>("dis_frac", '\0', "fraction of dissenters", false, 0);
   cmd.add<double>("v0", '\0', "fixed velocity", false, 0.5);
   cmd.add<int>("nstep", 'n', "total steps to run", true);
   cmd.add<double>("dt", '\0', "time interval between two steps", false, 1);
@@ -33,16 +34,22 @@ int main(int argc, char* argv[]) {
   Ran myran(cmd.get<unsigned long long>("seed"));
   VM *birds = NULL;
   if (cmd.exist("metric_free")) {
-    if (cmd.exist("dt")) {
-      birds = new VM_metric_free<V_conti>(cmd, myran);
-      std::cout << "Continous step, dt = " << cmd.get<double>("dt") << "\n";
-    } else if (cmd.exist("vec_noise")) {
-      birds = new VM_metric_free<V_vectorial>(cmd, myran);
-      std::cout << "Vectorial Noise, dt = " << cmd.get<double>("dt") << "\n";
+    if (cmd.exist("dis_frac")) {
+        birds = new VM_metric_free<V_scalar_aligner_dissenter>(cmd, myran);
+        std::cout << "Scalar Noise, dt = " << cmd.get<double>("dt") << "\n";
     } else {
-      birds = new VM_metric_free<V_scalar>(cmd, myran);
-      std::cout << "Scalar Noise, dt = " << cmd.get<double>("dt") << "\n";
+      if (cmd.exist("dt")) {
+        birds = new VM_metric_free<V_conti>(cmd, myran);
+        std::cout << "Continous step, dt = " << cmd.get<double>("dt") << "\n";
+      } else if (cmd.exist("vec_noise")) {
+        birds = new VM_metric_free<V_vectorial>(cmd, myran);
+        std::cout << "Vectorial Noise, dt = " << cmd.get<double>("dt") << "\n";
+      } else {
+        birds = new VM_metric_free<V_scalar>(cmd, myran);
+        std::cout << "Scalar Noise, dt = " << cmd.get<double>("dt") << "\n";
+      }
     }
+    
   } else {
     if (cmd.exist("dt")) {
       birds = new VM_metric<V_conti>(cmd, myran);
