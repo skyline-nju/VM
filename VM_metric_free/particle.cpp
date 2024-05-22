@@ -1,5 +1,12 @@
 #include "particle.h"
 
+void V_scalar::set_v(double theta) {
+  vx = cos(theta);
+  vy = sin(theta);
+  vx_next = vx;
+  vy_next = vy;
+}
+
 void V_scalar::update_v(double eta, double torque, Ran &myran) {
   double tmp = std::sqrt(vx_next * vx_next + vy_next * vy_next);
   double c1 = vx_next / tmp;

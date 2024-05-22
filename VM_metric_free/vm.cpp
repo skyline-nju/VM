@@ -69,6 +69,9 @@ void VM::ini(const cmdline::parser & cmd, Ran & myran) {
     std::cout << "create particles with random positions and velocities\n";
 #endif
   }
+  if (cmd.exist("ordered")) {
+    set_v(0);
+  }
 }
 
 void VM::create_random(Ran & myran) {

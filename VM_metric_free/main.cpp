@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
   cmd.add("vec_noise", '\0', "use vectorial noise");
   // is metric-free
   cmd.add("metric_free", '\0', "is metric-free?");
+  cmd.add("ordered", '\0', "ordered initial condition");
   cmd.parse_check(argc, argv);
 
   Ran myran(cmd.get<unsigned long long>("seed"));

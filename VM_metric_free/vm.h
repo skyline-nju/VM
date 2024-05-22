@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include "config.h"
 #include "particle.h"
 #include "rand.h"
 #include "comn.h"
@@ -40,6 +41,7 @@ public:
   virtual void get_v_mean(double &vx_m, double &vy_m) const;
   virtual void get_theta(int i, double &theta) const= 0;
   virtual void get_type(int i, uint32_t& my_type) const = 0;
+  virtual void set_v(double theta) = 0;
   int get_num_birds() const { return N; }
   virtual void output_data(double *x, double *y, double *vx, double *vy) const;
 
@@ -73,6 +75,7 @@ public:
   void get_v(int i, double &vx, double &vy) const { par_arr[i].get_v(vx, vy); }
   void get_theta(int i, double &Theta) const { par_arr[i].get_theta(Theta); }
   void get_type(int i, uint32_t& my_type) const { my_type = 0; }
+  void set_v(double theta);
 
   std::vector<Node> par_arr;
   Cell<Node> *cell;
@@ -92,6 +95,13 @@ inline void VM_metric<BaseV>::input_data(const double * x, const double * y,
   cell = new Cell<Node>[Cell<Node>::mm];
 }
 
+template<class BaseV>
+void VM_metric<BaseV>::set_v(double theta){
+  for (auto& p: par_arr) {
+    p.set_v(theta);
+  }
+}
+
 template <class BaseV>
 inline void VM_metric<BaseV>::align() {
   Cell<Node>::refresh(cell, par_arr);
@@ -109,6 +119,7 @@ void VM_metric<BaseV>::stream(double dt, Ran &myran) {
   }
 }
 
+#ifndef MOVE_POINTS_ON
 // Vicsek model for metric-free case, using CGAL.
 template <class BaseV>
 class VM_metric_free : public VM {
@@ -135,6 +146,7 @@ public:
   void get_theta(int i, double &theta)const;
   void get_dR(int i, int j, double &dx, double &dy) const;
   void get_type(int i, uint32_t& type_i) const { v_arr[i].get_type(type_i); }
+  void set_v(double theta);
 
   std::vector<BaseV> v_arr;
   std::vector<Pair_P_I> x_arr;
@@ -156,6 +168,16 @@ VM_metric_free<BaseV>::VM_metric_free(const cmdline::parser & cmd, Ran & myran):
       v_arr[i].set_type(1);
     }
     std::cout << "there are " << n_dis << " dissenters out of " << N << " birds" << std::endl;
+  }
+#ifdef MOVE_POINTS_ON
+
+#endif
+}
+
+template <class BaseV>
+void VM_metric_free<BaseV>::set_v(double theta) {
+  for (auto& v: v_arr) {
+    v.set_v(theta);
   }
 }
 
@@ -276,5 +298,6 @@ template<class BaseV>
 inline void VM_metric_free<BaseV>::get_theta(int i, double & Theta) const{
   v_arr[i].get_theta(Theta);
 }
+#endif
 
 #endif

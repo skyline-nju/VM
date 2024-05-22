@@ -26,6 +26,7 @@ struct V_scalar {
   void get_theta(double &Theta) const { Theta = std::atan2(vy, vx); }
   void get_type(uint32_t& my_type) const { my_type=0; }
   void set_type(uint32_t my_type) {};
+  void set_v(double theta);
 
   double vx;
   double vy;
@@ -108,6 +109,7 @@ struct V_conti {
   void get_theta(double &Theta) const { Theta = theta; }
   void get_type(uint32_t& my_type) const { my_type=0; }
   void set_type(uint32_t my_type) {};
+  void set_v(double theta0) { theta = theta0; }
 
   double theta;
   double theta_dot;

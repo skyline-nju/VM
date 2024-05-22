@@ -6,6 +6,7 @@
 #include "comn.h"
 #include "cmdline.h"
 #include "vm.h"
+#include "vm_topo.h"
 #include "gsd.h"
 
 void ini_output(const cmdline::parser &cmd, const VM *birds, const std::string& prefix);
