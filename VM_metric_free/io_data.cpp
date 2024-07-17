@@ -49,7 +49,7 @@ void ini_output(const cmdline::parser &cmd, const VM *birds, const std::string &
     if (cmd.exist("alpha")) {
       snprintf(filename, 255, "%s%sL%g_%g_a%g_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
     } else if (cmd.exist("dis_frac")) {
-      snprintf(filename, 255, "%s%sL%g_%g_d%.3f_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, cmd.get<double>("dis_frac"), eta, rho0, seed);
+      snprintf(filename, 255, "%s%sL%g_%g_d%.4f_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, cmd.get<double>("dis_frac"), eta, rho0, seed);
     } else {
       snprintf(filename, 255, "%s%sL%g_%g_e%.3f_r%g_s%llu.gsd", prefix.c_str(), delimiter.c_str(), Lx, Ly, eta, rho0, seed);
     }
@@ -74,7 +74,7 @@ OrderParaWriter::OrderParaWriter(const cmdline::parser & cmd, const std::string&
   if (cmd.exist("alpha")) {
     snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("alpha"), eta, rho0, seed);
   } else if (cmd.exist("dis_frac")) {
-    snprintf(filename, 255, "%s%g_%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, cmd.get<double>("dis_frac"), eta, rho0, seed);
+    snprintf(filename, 255, "%s%g_%g_%.4f_%.3f_%.3f_%llu.dat", folder, Lx, Ly, cmd.get<double>("dis_frac"), eta, rho0, seed);
   } else {
     snprintf(filename, 255, "%s%g_%g_%g_%g_%llu.dat", folder, Lx, Ly, eta, rho0, seed);
   }

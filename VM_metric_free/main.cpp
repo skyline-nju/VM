@@ -30,6 +30,8 @@ int main(int argc, char* argv[]) {
   // is metric-free
   cmd.add("metric_free", '\0', "is metric-free?");
   cmd.add("ordered", '\0', "ordered initial condition");
+  cmd.add("ordered_aligner", '\0', "ordered initial condition for aligners");
+
   cmd.parse_check(argc, argv);
 
   Ran myran(cmd.get<unsigned long long>("seed"));
@@ -65,7 +67,7 @@ int main(int argc, char* argv[]) {
   }
 
   // set prefix to store the output files
-  std::string prefix=".";
+  std::string prefix="/scratch03.local/yduan/topoVM/dissenters/L200_new";
 
   ini_output(cmd, birds, prefix);
   int n = cmd.get<int>("nstep");

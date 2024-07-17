@@ -119,12 +119,18 @@ void VM::create_defect_pair(Ran &myran,
 void VM::get_v_mean(double & vx_m, double & vy_m) const {
   vx_m = 0;
   vy_m = 0;
+  int count = 0;
   for (int i = 0; i < N; i++) {
     double vx, vy;
     get_v(i, vx, vy);
-    vx_m += vx;
-    vy_m += vy;
+    uint32_t my_type;
+    get_type(i, my_type);
+    if (my_type == 0) {
+      vx_m += vx;
+      vy_m += vy;
+      count++;
+    }
   }
-  vx_m /= N;
-  vy_m /= N;
+  vx_m /= count;
+  vy_m /= count;
 }

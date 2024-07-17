@@ -16,7 +16,8 @@ set (GMP_LIBRARIES "/home/yduan/local/gmp-6.3.0/lib")
 set (GMP_INCLUDE_DIR "/home/yduan/local/gmp-6.3.0/include")
 set (MPFR_LIBRARIES "/home/yduan/local/mpfr-4.2.1/lib")
 set (MPFR_INCLUDE_DIR "/home/yduan/local/mpfr-4.2.1/include")
-set (Boost_INCLUDE_DIR "/home/yduan/local/boost_1_85_0")
+#set (Boost_INCLUDE_DIR "/home/yduan/local/boost_1_85_0")
+set (Boost_INCLUDE_DIR "/usr/lmp/boost-1.69.0/include")
 
 
 # CGAL and its components
@@ -53,17 +54,17 @@ link_directories(${MPFR_LIBRARIES})
 
 option(LINK_STATIC_LIBS
        "Link the executable to static libraries"
-       OFF)
+       ON)
 
 
-if (LINK_STATIC_LIBS)
+#if (LINK_STATIC_LIBS)
   # link static libraries on unix.
-  if (UNIX)
-    set(my_flag "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lmpfr -lgmp")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} ${my_flag}")
-    message(${CMAKE_CXX_FLAGS})
-  endif(UNIX)
-endif(LINK_STATIC_LIBS)
+  #if (UNIX)
+    #set(my_flag "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lmpfr -lgmp")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} ${my_flag}")
+    #message(${CMAKE_CXX_FLAGS})
+  #endif(UNIX)
+#endif(LINK_STATIC_LIBS)
 
 
 # Creating entries for target: large_point_set

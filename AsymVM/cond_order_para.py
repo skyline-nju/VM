@@ -36,7 +36,7 @@ def plot_psi_theta_varied_alpha(rho0):
     seed = 2001
 
     if rho0 == 3:
-        a_arr = np.array([0, 0.01, 0.05, 0.1])
+        a_arr = np.array([0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1])
     elif rho0 == 0.65:
         a_arr = np.array([0.06])
     elif rho0 == 4:
@@ -70,8 +70,8 @@ def plot_psi_theta_varied_alpha(rho0):
     ax2.set_xlabel(r"$t$", fontsize="large")
     ax1.set_ylabel(r"$\psi$", fontsize="large")
     ax2.set_ylabel(r"$\theta_m$", fontsize="large")
-    ax2.set_xlim(0, 1.8e6)
-    ax1.set_ylim(ymin=0.9, ymax=1)
+    ax2.set_xlim(0)
+    # ax1.set_ylim(ymin=0.9, ymax=1)
     ax2.axhline(0, linestyle="dotted", color="tab:grey")
 
     fig.suptitle(r"$\rho_0=%g,\eta=%g, L_x=%d, L_y=%d$" % (rho0, eta, Lx, Ly), fontsize="x-large")

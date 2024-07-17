@@ -146,6 +146,9 @@ struct V_scalar_aligner_dissenter: public V_scalar {
   void get_type(uint32_t& my_type) const { my_type = is_aligner == true? 0: 1; }
 
   void set_type(uint32_t my_type) {is_aligner = my_type == 0;}
+
+  void set_v(double theta);
+
   // is this particle a aligner or dissenter
   bool is_aligner = true;
 };

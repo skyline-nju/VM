@@ -52,6 +52,11 @@ VM_metric_free<BaseV>::VM_metric_free(const cmdline::parser & cmd, Ran & myran):
     for (int i = 0;  i < n_dis; i++) {
       v_arr[i].set_type(1);
     }
+    if (cmd.exist("ordered_aligner")) {
+      for (int i = 0; i < N; i++) {
+        v_arr[i].set_v(0);
+      }
+    }
     std::cout << "there are " << n_dis << " dissenters out of " << N << " birds" << std::endl;
   }
 }

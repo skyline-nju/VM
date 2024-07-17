@@ -38,6 +38,16 @@ void V_scalar::update_x(double & _x, double & _y, double v0, double Lx, double L
   }
 }
 
+
+void V_scalar_aligner_dissenter::set_v(double theta) {
+  if (is_aligner) {
+      vx = cos(theta);
+      vy = sin(theta);
+      vx_next = vx;
+      vy_next = vy;
+  }
+}
+
 void V_vectorial::update_v(double eta, double torque, Ran &myran) {
   double noise_x, noise_y;
   myran.circle_point_picking(noise_x, noise_y);
