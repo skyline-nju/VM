@@ -37,6 +37,7 @@ VM/corr_r
 AsymVM/data
 NematicLAG/data
 AIM/data
+VM_voro/build
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
