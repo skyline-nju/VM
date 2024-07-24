@@ -1,32 +1,71 @@
 #include "vm_voro.h"
+#include "io2D.h"
 
 int main(int argc, char* argv[]) {
-  //set parameters
- 
+  // Set parameters
   double Lx = 100;
   double Ly = 100;
   double eta = 0.2;
   double rho0 = 1;
   double v0 = 0.5;
   int N = int(Lx * Ly * rho0);
-  int n_step = 10000;
+  int n_step = 20000;
   int log_dt = 1000;
   int snap_dt = 1000;
   int seed = 3000;
-  Ran myran(seed);
+  double frac_dis = 0.1;
 
-  VM_voro<V_scalar> birds(Lx, Ly, N, eta, v0);
+  std::string ini_mode = "resume";
+  int n_dis = int(round(N * frac_dis));
+  Ranq2 myran(seed);
 
-  birds.ini_rand(myran, 0);
+  VM_Voro_AlignerDissenter<V_scalar> birds(Lx, Ly, N, eta, v0, n_dis);
 
-  for (int i = 1; i < n_step; i++) {
-    birds.align();
-    birds.stream(myran);
-    if (i % 100 == 0) {
-      double phi, theta;
-      birds.get_order_para(phi, theta);
-      std::cout << "t=" << i << "\tphi=" << phi << "\ttheta=" << theta << std::endl;
-    }
+  // Set output
+  char basename[255];
+  char log_file[255];
+  char order_para_file[255];
+  char snap_file[255];
+
+  char prefix[255] = "data";
+  mkdir(prefix);
+  char log_folder[255];
+  char order_para_folder[255];
+  snprintf(log_folder, 255, "%s/log", prefix);
+  snprintf(order_para_folder, 255, "%s/op", prefix);
+  mkdir(log_folder);
+  mkdir(order_para_folder);
+
+  snprintf(basename, 255, "L%g_%g_d%.4f_e%.3f_r%g_s%d", Lx, Ly, frac_dis, eta, rho0, seed);
+  snprintf(snap_file, 255, "%s/%s.gsd", prefix, basename);
+
+  int start = 0;
+  double h = 1;
+  double snap_log_sep = -1;
+  Snap_GSD_2 gsd(snap_file, n_step, snap_dt, start, h, snap_log_sep, Lx, Ly, ini_mode);
+
+  snprintf(log_file, 255, "%s/%s_t%08d.dat", log_folder, basename, start);
+  snprintf(order_para_file, 255, "%s/%s_t%08d.dat", order_para_folder, basename, start);
+
+  LogExporter log(log_file, start, n_step, 1000, N);
+
+  if (ini_mode == "resume") {
+    birds.ini_from_snap(gsd);
+  } else if (ini_mode == "rand") {
+    birds.ini_rand(myran);
+  } else if (ini_mode == "ordered") {
+    birds.ini_rand(myran, 0);
   }
 
+  for (int i = 1; i <= n_step; i++) {
+    birds.align();
+    birds.stream(myran);
+    log.record(i);
+    birds.dump(i, gsd);
+    // if (i % 100 == 0) {
+    //   double phi, theta;
+    //   birds.get_order_para(phi, theta);
+    //   std::cout << "t=" << i << "\tphi=" << phi << "\ttheta=" << theta << std::endl;
+    // }
+  }
 }
