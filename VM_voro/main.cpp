@@ -3,19 +3,18 @@
 
 int main(int argc, char* argv[]) {
   // Set parameters
-  double Lx = 100;
-  double Ly = 100;
-  double eta = 0.2;
+  double Lx = atof(argv[1]);
+  double eta = atof(argv[2]);
+  double frac_dis = atof(argv[3]);
+  int n_step = atoi(argv[4]);
+  int snap_dt = atoi(argv[5]);
+  int seed = atoi(argv[6]);
+  std::string ini_mode = argv[7];
+  double Ly = Lx;
   double rho0 = 1;
   double v0 = 0.5;
   int N = int(Lx * Ly * rho0);
-  int n_step = 20000;
   int log_dt = 1000;
-  int snap_dt = 1000;
-  int seed = 3000;
-  double frac_dis = 0.1;
-
-  std::string ini_mode = "resume";
   int n_dis = int(round(N * frac_dis));
   Ranq2 myran(seed);
 
@@ -62,10 +61,5 @@ int main(int argc, char* argv[]) {
     birds.stream(myran);
     log.record(i);
     birds.dump(i, gsd);
-    // if (i % 100 == 0) {
-    //   double phi, theta;
-    //   birds.get_order_para(phi, theta);
-    //   std::cout << "t=" << i << "\tphi=" << phi << "\ttheta=" << theta << std::endl;
-    // }
   }
 }

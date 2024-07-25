@@ -76,6 +76,8 @@ public:
 
   void align();
 
+  void align_nearest_neighbor();
+
   template<typename TRan>
   void stream(TRan& myran);
 
@@ -219,6 +221,18 @@ void VM_Voro<BaseV>::align() {
   }
 }
 
+// TODO
+template <class BaseV>
+void VM_Voro<BaseV>::align_nearest_neighbor() {
+  for (auto pit = DT_->periodic_points_begin(PDT::UNIQUE);
+    pit != DT_->periodic_points_end(PDT::UNIQUE); ++pit) {
+    unsigned int idx0 = pit.get_vertex()->info();
+    // auto vh_nearest = CGAL::nearest_neighbor(*DT_, pit.get_vertex());
+    // unsigned int idx1 = vh_nearest->info();
+    // v_arr_[idx0].collide(&v_arr_[idx1], true, false);
+  }
+}
+
 template <class BaseV>
 template <typename TRan>
 void VM_Voro<BaseV>::stream(TRan &myran) {
@@ -270,6 +284,8 @@ public:
 
   void align();
 
+  void align_nearest_neighbor();
+
   template <typename T>
   void get_order_para(T &phi, T &theta) const;
 
@@ -298,6 +314,21 @@ void VM_Voro_AlignerDissenter<BaseV>::align() {
     }
     if (idx2 < idx0) {
       VM_Voro<BaseV>::v_arr_[idx2].collide(&VM_Voro<BaseV>::v_arr_[idx0], is_aligner_2, is_aligner_0);
+    }
+  }
+}
+
+// TODO
+template <class BaseV>
+void VM_Voro_AlignerDissenter<BaseV>::align_nearest_neighbor() {
+  for (auto pit = VM_Voro<BaseV>::DT_->periodic_points_begin(PDT::UNIQUE);
+    pit != VM_Voro<BaseV>::DT_->periodic_points_end(PDT::UNIQUE); ++pit) {
+    unsigned int idx0 = pit.get_vertex()->info();
+    bool is_aligner_0 = idx0 >= n_dis_;
+    if (is_aligner_0) {
+      // auto vh_nearest = CGAL::nearest_neighbor(*VM_Voro<BaseV>::DT_, pit.get_vertex());
+      // unsigned int idx1 = vh_nearest->info();
+      // VM_Voro<BaseV>::v_arr_[idx0].collide(&VM_Voro<BaseV>::v_arr_[idx1], true, false);
     }
   }
 }
