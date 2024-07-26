@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
   snprintf(order_para_file, 255, "%s/%s_t%08d.dat", order_para_folder, basename, start);
 
   LogExporter log(log_file, start, n_step, 1000, N);
+  OrderParaExporter op(order_para_file, start, n_step, 100);
 
   if (ini_mode == "resume") {
     birds.ini_from_snap(gsd);
@@ -60,6 +61,7 @@ int main(int argc, char* argv[]) {
     birds.align();
     birds.stream(myran);
     log.record(i);
+    op.dump(i, birds);
     birds.dump(i, gsd);
   }
 }

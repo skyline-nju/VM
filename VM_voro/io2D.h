@@ -56,6 +56,31 @@ private:
   int step_count_ = 0;
 };
 
+
+class OrderParaExporter: public ExporterBase {
+public:
+  OrderParaExporter(const std::string& outfile, int start, int n_step, int sep)
+    : ExporterBase(n_step, sep, start), fout_(outfile) {}
+
+  ~OrderParaExporter() { fout_.close(); }
+
+  template <typename TVM>
+  void dump(int i_step, const TVM& birds);
+
+private:
+  std::ofstream fout_;
+};
+
+template <typename TVM>
+void OrderParaExporter::dump(int i_step, const TVM &birds) {
+  if (need_export(i_step)) {
+    double phi, theta;
+    birds.get_order_para(phi, theta);
+    fout_ << i_step << "\t" << std::setprecision(8)
+          << phi << "\t" << theta << "\n";
+  }
+}
+
 class Snap_GSD_2 : public ExporterBase {
 public:
   Snap_GSD_2(const std::string& filename,
