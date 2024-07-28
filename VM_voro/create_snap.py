@@ -533,17 +533,17 @@ def split(s: hoomd.Snapshot, x_shift=0):
 if __name__ == "__main__":
     # folder = "/scratch03.local/yduan/QS_MPI_noself/L1280_r10_10_10_varied_Dt_h"
     folder = "build/data"
-    basename = "L100_100_d0.1000_e0.200_r1_s3000.gsd"
+    basename = "L200_200_d0.1000_e0.300_r1_s3000.gsd"
 
     fname = f"{folder}/{basename}"
     snap = read_one_frame(fname, -1)
     # snap = scale(snap, 1/2, 1)
-    snap = duplicate(snap, 1, 2)
-    snap = scale(snap, 2, 1, 0.25)
+    # snap = duplicate(snap, 1, 2)
+    snap = scale(snap, 2, 2, 0.25)
     snap.configuration.step = 0
 
     snap = sort_by_type(snap)
-    fout = f"{folder}/L200_200_d0.1000_e0.200_r1_s3001.gsd"
+    fout = f"{folder}/L400_400_d0.1000_e0.300_r1_s2001.gsd"
     f = hoomd.open(name=fout, mode='wb')
     f.append(snap)
 

@@ -63,10 +63,10 @@ public:
   void get_pos_arr(T* pos) const;
 
   template <typename TRan>
-  void ini_rand(TRan myran);
+  void ini_rand(TRan &myran);
 
   template <typename TRan>
-  void ini_rand(TRan myran, double theta0);
+  void ini_rand(TRan &myran, double theta0);
 
   template <typename TSnap>
   void ini_from_snap(TSnap& snap_reader);
@@ -134,7 +134,7 @@ void VM_Voro<BaseV>::get_pos_arr(T *pos) const {
 
 template <class BaseV>
 template <typename TRan>
-void VM_Voro<BaseV>::ini_rand(TRan myran) {
+void VM_Voro<BaseV>::ini_rand(TRan &myran) {
   double *x = new double[N_];
   double *y = new double[N_];
   double *vx = new double[N_];
@@ -155,7 +155,7 @@ void VM_Voro<BaseV>::ini_rand(TRan myran) {
 
 template <class BaseV>
 template <typename TRan>
-void VM_Voro<BaseV>::ini_rand(TRan myran, double theta0) {
+void VM_Voro<BaseV>::ini_rand(TRan &myran, double theta0) {
   double *x = new double[N_];
   double *y = new double[N_];
   double *vx = new double[N_];
@@ -282,6 +282,14 @@ public:
   VM_Voro_AlignerDissenter(double Lx, double Ly, int N, double eta, double v0, int n_dis)
     : VM_Voro<BaseV>(Lx, Ly, N, eta, v0), n_dis_(n_dis) {}
 
+
+  template <typename TRan>
+  void ini_rand(TRan &myran) {VM_Voro<BaseV>::ini_rand(myran);}
+  template <typename TRan>
+  void ini_rand(TRan &myran, double theta0);
+  template <typename TSnap>
+  void ini_from_snap(TSnap& snap_reader);
+  
   void align();
 
   void align_nearest_neighbor();
@@ -334,19 +342,80 @@ void VM_Voro_AlignerDissenter<BaseV>::align_nearest_neighbor() {
 }
 
 template <class BaseV>
+template <typename TRan>
+void VM_Voro_AlignerDissenter<BaseV>::ini_rand(TRan &myran, double theta0) {
+  double *x = new double[VM_Voro<BaseV>::N_];
+  double *y = new double[VM_Voro<BaseV>::N_];
+  double *vx = new double[VM_Voro<BaseV>::N_];
+  double *vy = new double[VM_Voro<BaseV>::N_];
+
+  double vx0 = cos(theta0);
+  double vy0 = sin(theta0);
+  for (int i = 0; i < VM_Voro<BaseV>::N_; i++) {
+    x[i] = myran.doub() * VM_Voro<BaseV>::Lx_;
+    y[i] = myran.doub() * VM_Voro<BaseV>::Ly_;
+    if (i > n_dis_) {
+      vx[i] = vx0;
+      vy[i] = vy0;
+    } else {
+      double theta = myran.doub() * 2 * PI;
+      vx[i] = cos(theta);
+      vy[i] = sin(theta);
+    }
+  }
+  VM_Voro<BaseV>::input_data(x, y, vx, vy);
+  delete []x;
+  delete []y;
+  delete []vx;
+  delete []vy;
+}
+
+template <class BaseV>
+template <typename TSnap>
+void VM_Voro_AlignerDissenter<BaseV>::ini_from_snap(TSnap &snap_reader) {
+  double *x = new double[VM_Voro<BaseV>::N_];
+  double *y = new double[VM_Voro<BaseV>::N_];
+  double *vx = new double[VM_Voro<BaseV>::N_];
+  double *vy = new double[VM_Voro<BaseV>::N_];
+  uint32_t *type_id = new uint32_t[VM_Voro<BaseV>::N_];
+  snap_reader.read_last_frame(x, y, vx, vy, type_id);
+  std::cout << "Load " << VM_Voro<BaseV>::N_ << " particles, consisting of " << n_dis_ << " dissenters" << std::endl;
+  for(int i = 0; i < VM_Voro<BaseV>::N_; i++) {
+    if (i < n_dis_) {
+      if (type_id[i] != 1) {
+        std::cout << "Error, typeid of particle " << i << " is " << type_id[i] << std::endl;
+        exit(1);
+      }
+    } else {
+      if (type_id[i] != 0) {
+        std::cout << "Error, typeid of particle " << i << " is " << type_id[i] << std::endl;
+        exit(1);
+      }
+    }
+  }
+  VM_Voro<BaseV>::input_data(x, y, vx, vy);
+  delete []x;
+  delete []y;
+  delete []vx;
+  delete []vy;
+  delete []type_id;
+}
+
+template <class BaseV>
 template <typename T>
 void VM_Voro_AlignerDissenter<BaseV>::get_order_para(T &phi, T &theta) const {
-  double vx = 0;
-  double vy = 0;
-  for (int i = n_dis_; i < VM_Voro<BaseV>::N_; i++) {
-    vx += VM_Voro<BaseV>::v_arr_[i].vx;
-    vy += VM_Voro<BaseV>::v_arr_[i].vy;
-  }
-  int n_aligner = VM_Voro<BaseV>::N_ - n_dis_;
-  vx /= n_aligner;
-  vy /= n_aligner;
-  phi = sqrt(vx * vx + vy * vy);
-  theta = atan2(vy, vx); 
+    double vx = 0;
+    double vy = 0;
+    for (int i = n_dis_; i < VM_Voro<BaseV>::N_; i++)
+    {
+        vx += VM_Voro<BaseV>::v_arr_[i].vx;
+        vy += VM_Voro<BaseV>::v_arr_[i].vy;
+    }
+    int n_aligner = VM_Voro<BaseV>::N_ - n_dis_;
+    vx /= n_aligner;
+    vy /= n_aligner;
+    phi = sqrt(vx * vx + vy * vy);
+    theta = atan2(vy, vx);
 }
 
 template <class BaseV>
