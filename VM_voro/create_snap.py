@@ -201,7 +201,35 @@ def adjust_density(s: hoomd.Snapshot, phi_A: float, phi_B: float, mode="copy", R
     s2.particles.types = s.particles.types
     s2.configuration.step = 0
     return s2
-    
+
+
+def add_A_particles(s: hoomd.Snapshot, nA_added) -> hoomd.Snapshot:
+    Lx = int(s.configuration.box[0])
+    Ly = int(s.configuration.box[1])
+
+    n_old = s.particles.N
+    n_new = s.particles.N + nA_added
+    s.particles.N = n_new
+    pos = np.zeros((n_new, 3), dtype=np.float32)
+    pos[:n_old] = s.particles.position
+    type_id = np.zeros(n_new, dtype=np.uint32)
+    type_id[:n_old] = s.particles.typeid
+
+    pos[n_old:, 0] = (np.random.rand(nA_added) - 0.5) * Lx
+    pos[n_old:, 1] = (np.random.rand(nA_added) - 0.5) * Ly
+    pos[n_old:, 2] = (np.random.rand(nA_added) - 0.5) * np.pi * 2
+
+    s2 = hoomd.Snapshot()
+    s2.configuration.box = [Lx, Ly, 1, 0, 0, 0]
+    s2.particles.N = n_new
+    s2.particles.position = pos
+    s2.particles.typeid = type_id
+    s2.particles.types = s.particles.types
+    s2.configuration.step = 0
+    return s2
+
+
+
 
 def inverse(x, y, theta, xc, yc):
     x_inv = 2 * xc - x
@@ -531,19 +559,19 @@ def split(s: hoomd.Snapshot, x_shift=0):
 
 
 if __name__ == "__main__":
-    # folder = "/scratch03.local/yduan/QS_MPI_noself/L1280_r10_10_10_varied_Dt_h"
-    folder = "build/data"
-    basename = "L200_200_d0.1000_e0.300_r1_s3000.gsd"
+    folder = "/scratch03.local/yduan/topoVM/dissenters/L800_new2/"
+    # folder = "build/data"
+    basename = "L800_800_d0.1000_e0.300_r1_s2011.gsd"
 
     fname = f"{folder}/{basename}"
     snap = read_one_frame(fname, -1)
-    # snap = scale(snap, 1/2, 1)
-    # snap = duplicate(snap, 1, 2)
-    snap = scale(snap, 2, 2, 0.25)
+    # snap = duplicate(snap, 2, 2)
+    # snap = scale(snap, 2, 2, 0.25)
+    snap = add_A_particles(snap, nA_added=32000)
     snap.configuration.step = 0
 
     snap = sort_by_type(snap)
-    fout = f"{folder}/L400_400_d0.1000_e0.300_r1_s2001.gsd"
+    fout = f"{folder}/L800_800_d0.095238_e0.300_r1.05_s2001.gsd"
     f = hoomd.open(name=fout, mode='wb')
     f.append(snap)
 
